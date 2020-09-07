@@ -1,5 +1,5 @@
 let
-    UtmLatLong = (utmX as number,utmY as number,utmZone as number) =>
+    UtmLatLong = (utmEast as number,utmNorth as number,utmZone as number) =>
         let
         diflat = -0.00066286966871111111111111111111111111,
         diflon = -0.0003868060578,
