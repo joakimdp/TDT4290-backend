@@ -10,8 +10,8 @@ let
         e2 = Number.Power((Number.Power(c_sa,2) - Number.Power(c_sb,2)),0.5)/c_sb,
         e2cuadrada = Number.Power(e2,2),
         c = Number.Power(c_sa,2) / c_sb,
-        x = utmX - 500000,
-        y = utmY,
+        x = utmEast - 500000,
+        y = utmNorth,
 
         s = ((zone * 6.0) - 183.0),
         lat = y / (c_sa * 0.9996),
