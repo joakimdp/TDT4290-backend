@@ -12,6 +12,7 @@ class SkredvarselFetcher(fetcher.Fetcher):
             #url = "https://api01.nve.no/hydrology/forecast/avalanche/v5.0.1/api/AvalancheWarningByCoordinates/Simple/" + lat + "/" + lon + "/" + "/1/" + time
             urlTest = "https://api01.nve.no/hydrology/forecast/avalanche/v5.0.1/api/AvalancheWarningByCoordinates/Detail/61.608466699269655/8.5643806640625/1/2020-01-01/"
             response.append(requests.get(url).json())
+            print(response)
         return response
             
         

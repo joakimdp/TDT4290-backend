@@ -1,11 +1,14 @@
 import apis.api as api
-import skredvarsel_fetcher as sf
+from skredvarsel_fetcher import SkredvarselFetcher
+from skredvarsel_processor import SkrevarselProcessor
 
 
-class Regobs(api.Processor):
-    def get_data(self):
-        skred_data = sf.SkredvarselFetcher.fetch()
-        return skred_data
+class Skredvarsel(api.Processor):
+    def get_data(self, avalanche_incident_list):
+        skred_data = SkredvarselFetcher.fetch(avalanche_incident_list)
+        processed_data = SkrevarselProcessor.process(skred_data)
+        return processed_data
         pass
+
     
     
