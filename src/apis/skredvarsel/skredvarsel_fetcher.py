@@ -1,10 +1,9 @@
 from apis.fetcher as fetcher
 import requests
-from 
 
 class SkredvarselFetcher(fetcher.Fetcher):
     def create_url(lat, lon, date):
-        api_format_sting = "https://api01.nve.no/hydrology/forecast/avalanche/v5.0.1/api/AvalancheWarningByCoordinates/Simple/{}/{}/1/{}"
+        api_format_sting = "https://api01.nve.no/hydrology/forecast/avalanche/v5.0.1/api/AvalancheWarningByCoordinates/Simple/{}/{}/1/{}/"
      return api_format_sting.format(lat, lon, date)
 
     def fetch_data_from_skredvarsel(avalanche_incident):
