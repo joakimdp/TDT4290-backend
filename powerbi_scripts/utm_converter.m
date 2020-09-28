@@ -2,10 +2,11 @@ let
     UtmLatLong = (utmEast as nullable number,utmNorth as nullable number,utmZone as number) =>
         let
 
-        east = if utmEast = null then 0 else utmEast,
-
-        north = if utmNorth = null then 0 else utmNorth,
-
+        if utmEast = null or utmNorth = null
+        then
+        in
+        Table.FromRecords({[latitude = final_lat,longitude = final_long]})
+        else
         diflat = -0.00066286966871111111111111111111111111,
         diflon = -0.0003868060578,
 
@@ -15,8 +16,8 @@ let
         e2 = Number.Power((Number.Power(c_sa,2) - Number.Power(c_sb,2)),0.5)/c_sb,
         e2cuadrada = Number.Power(e2,2),
         c = Number.Power(c_sa,2) / c_sb,
-        x = east - 500000,
-        y = north,
+        x = utmEast - 500000,
+        y = utmNorth,
 
         s = ((zone * 6.0) - 183.0),
         lat = y / (c_sa * 0.9996),
