@@ -56,7 +56,6 @@ class RegobsData(Base):
 class RegobsInitializer(initializer.Initializer):
 
     def __init__(self, engine: Engine):
-        super().__init__()
         self.engine = engine
 
     def initialize_tables(self):
