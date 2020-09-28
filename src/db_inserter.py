@@ -1,4 +1,6 @@
 import pyodbc
+import pandas as pd
+from sqlalchemy.engine.base import Engine
 
 
 class DbInserter():
@@ -6,11 +8,9 @@ class DbInserter():
     Class for inserting data to a table in the database.
     """
 
-    def __init__(self, id, time, coords_utm, coords_latlng):
-        self.id = id
-        self.time = time
-        self.coords_utm = coords_utm
-        self.coords_latlng = coords_latlng
+    def __init__(self, engine: Engine):
+        self.engine = engine
 
-    def connect(self):
-        # TODO: implement
+    def insert(self, table_name: str, data_frame: pd.DataFrame) -> None:
+        data_frame.to_sql(table_name, con=self.engine,
+                          if_exists='replace', chunksize=50, method='multi')

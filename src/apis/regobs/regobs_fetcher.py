@@ -13,10 +13,10 @@ class RegobsFetcher(fetcher.Fetcher):
 
     def fetch(self) -> pd.DataFrame:
         # Get data from AvalancheObs and Incident
-        print('Fetching AvalanceObs...')
+        print('Fetching AvalanceObs..')
         avalanche_obs = self.__fetch_from_api(
             RegobsFetcher.__avalanche_obs_url)
-        print('Fetching Inbcident...')
+        print('Fetching Inbcident..')
         incident = self.__fetch_from_api(RegobsFetcher.__incident_url)
 
         self.regobs_df = pd.merge(avalanche_obs, incident, on=[
@@ -31,7 +31,7 @@ class RegobsFetcher(fetcher.Fetcher):
         self.__combine_columns('__metadata.type')
 
         # Get ObsLocation data
-        print('Fetching ObsLocation...')
+        print('Fetching ObsLocation..')
         self.__get_obs_location_data()
 
         print('All data fetched from RegObs.')
