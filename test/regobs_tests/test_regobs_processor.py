@@ -15,10 +15,10 @@ class TestRegobsProcessor(unittest.TestCase):
         self.addTypeEqualityFunc(pd.DataFrame, self.assertDataFrameEqual)
     
     def test_process(self):
-        example_df = pd.DataFrame([["2134", 340000, 5710000], ["1234", 340000, 5710000]], columns=["RegID", "UTMEast", "UTMNorth"])
-        processor = RegobsProcessor(example_df)
-        test = processor.process()
+        example_df = pd.DataFrame([["2134", 340000, 5710000], ["1234", 340000, 5710000]], columns=["reg_id", "utm_east_reg", "utm_north_reg"])
+        processor = RegobsProcessor()
+        test = processor.process(example_df)
 
-        fasit = pd.DataFrame([["2134", 340000, 5710000, 12.693877485734069, 51.51842960597545], ["1234", 340000, 5710000, 12.693877485734069, 51.51842960597545]], columns=["RegID", "UTMEast", "UTMNorth", "Lon", "Lat"])
+        fasit = pd.DataFrame([["2134", 340000, 5710000, 12.693877485734069, 51.51842960597545], ["1234", 340000, 5710000, 12.693877485734069, 51.51842960597545]], columns=["reg_id", "utm_east_reg", "utm_north_reg", "lng", "lat"])
         self.assertEqual(test, fasit)
     
