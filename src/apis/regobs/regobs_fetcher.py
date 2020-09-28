@@ -13,8 +13,10 @@ class RegobsFetcher(fetcher.Fetcher):
 
     def fetch(self) -> pd.DataFrame:
         # Get data from AvalancheObs and Incident
+        print('Fetching AvalanceObs...')
         avalanche_obs = self.__fetch_from_api(
             RegobsFetcher.__avalanche_obs_url)
+        print('Fetching Inbcident...')
         incident = self.__fetch_from_api(RegobsFetcher.__incident_url)
 
         self.regobs_df = pd.merge(avalanche_obs, incident, on=[
@@ -29,8 +31,10 @@ class RegobsFetcher(fetcher.Fetcher):
         self.__combine_columns('__metadata.type')
 
         # Get ObsLocation data
+        print('Fetching ObsLocation...')
         self.__get_obs_location_data()
 
+        print('All data fetched from RegObs.')
         return self.regobs_df
 
     def __fetch_from_api(self, url: str) -> pd.DataFrame:
@@ -84,9 +88,6 @@ class RegobsFetcher(fetcher.Fetcher):
             except MaxRetryError as e:
                 utm_east.append(None)
                 utm_north.append(None)
-
-            print('RegID: ', row['RegID'])
-            print('East: ', utm_east[index], ' - North: ', utm_north[index])
 
         self.regobs_df['UTMEast'] = utm_east
         self.regobs_df['UTMNorth'] = utm_north

@@ -58,7 +58,6 @@ class RegobsInitializer(initializer.Initializer):
     def __init__(self, engine: Engine):
         super().__init__()
         self.engine = engine
-        print(self.engine.table_names())
 
     def initialize_tables(self):
         RegobsData.metadata.create_all(self.engine)
