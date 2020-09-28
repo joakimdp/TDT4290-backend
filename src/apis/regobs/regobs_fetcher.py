@@ -8,14 +8,12 @@ from requests.adapters import HTTPAdapter
 
 class RegobsFetcher(fetcher.Fetcher):
 
-    def __init__(self):
-        super().__init__()
-        self.__avalanche_obs_url = "https://api.nve.no/hydrology/regobs/v3.2.0/Odata.svc/AvalancheObs/?$filter=AvalancheTriggerTID eq 21 or AvalancheTriggerTID eq 26 or AvalancheTriggerTID eq 27&$format=json"
-        self.__incident_url = "https://api.nve.no/hydrology/regobs/v3.2.0/Odata.svc/Incident/?$filter=GeoHazardTID eq 10 and ( DamageExtentTID eq 27 or DamageExtentTID eq 28 or DamageExtentTID eq 29 or DamageExtentTID eq 30 or DamageExtentTID eq 40 )&$format=json"
+    __avalanche_obs_url = "https://api.nve.no/hydrology/regobs/v3.2.0/Odata.svc/AvalancheObs/?$filter=AvalancheTriggerTID eq 21 or AvalancheTriggerTID eq 26 or AvalancheTriggerTID eq 27&$format=json"
+    __incident_url = "https://api.nve.no/hydrology/regobs/v3.2.0/Odata.svc/Incident/?$filter=GeoHazardTID eq 10 and ( DamageExtentTID eq 27 or DamageExtentTID eq 28 or DamageExtentTID eq 29 or DamageExtentTID eq 30 or DamageExtentTID eq 40 )&$format=json"
 
     def fetch(self) -> pd.DataFrame:
         # Get data from AvalancheObs and Incident
-        avalanche_obs = self.__fetch_from_api(self.__avalanche_obs_url)
+        avalanche_obs = self.__fetch_from_api(__avalanche_obs_url)
         incident = self.__fetch_from_api(__incident_url)
 
         self.regobs_df = pd.merge(avalanche_obs, incident, on=[
