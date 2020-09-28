@@ -1,5 +1,10 @@
 # TODO: Implement this
 
-import apis.regobs.regobs_fetcher as r
+from apis.regobs.regobs_fetcher import RegobsFetcher
 
-print(r.RegobsFetcher().fetch())
+
+if __name__ == "__main__":
+    regobs_fetcher = RegobsFetcher()
+    data_frame = regobs_fetcher.fetch()
+    print(data_frame.isnull().sum())
+    print(data_frame)
