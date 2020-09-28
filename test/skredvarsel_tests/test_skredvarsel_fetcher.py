@@ -46,5 +46,6 @@ class TestSkredvarselFetcher(unittest.TestCase):
         print(raw_data[1])
         self.assertEqual(raw_data[1]["ValidFrom"],"2019-02-20T00:00:00")
         self.assertEqual(raw_data[2]["ValidFrom"],"2019-02-25T00:00:00")
+        self.assertTrue(raw_data[1]["DangerLevel"])
 
     
