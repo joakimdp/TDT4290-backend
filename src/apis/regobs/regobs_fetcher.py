@@ -16,7 +16,7 @@ class RegobsFetcher(fetcher.Fetcher):
         print('Fetching AvalanceObs..')
         avalanche_obs = self.__fetch_from_api(
             RegobsFetcher.__avalanche_obs_url)
-        print('Fetching Inbcident..')
+        print('Fetching Incident..')
         incident = self.__fetch_from_api(RegobsFetcher.__incident_url)
 
         self.regobs_df = pd.merge(avalanche_obs, incident, on=[
