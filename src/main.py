@@ -27,7 +27,7 @@ def main():
     # Insert Regobs data into database table
     print('Inserting RegObs data into database table..')
     db_inserter = DbInserter(engine)
-    db_inserter.insert('regobs_data', processed_regobs_data)
+    db_inserter.insert('regobs_data', processed_regobs_data, 'replace')
     print('Data successfully imported to database table')
 
 
