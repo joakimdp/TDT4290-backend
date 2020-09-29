@@ -1,4 +1,6 @@
 import pyodbc
+import pandas as pd
+from sqlalchemy.engine.base import Engine
 
 
 class DbInserter():
@@ -6,24 +8,9 @@ class DbInserter():
     Class for inserting data to a table in the database.
     """
 
-    def __init__(self, id, time, coords_utm, coords_latlng):
-        self.id = id
-        self.time = time
-        self.coords_utm = coords_utm
-        self.coords_latlng = coords_latlng
+    def __init__(self, engine: Engine):
+        self.engine = engine
 
-    def connect(self):
-        # TODO: implement
-        server = 'tcp:avalanche-server.database.windows.net,1433'
-        database = 'avalanche-db'
-        username = 'admin_user'
-        password = '[password]'
-        cnxn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER=' +
-                              server+';DATABASE='+database+';UID='+username+';PWD=' + password)
-        cursor = cnxn.cursor()
-
-        cursor.execute("SELECT @@version;")
-        row = cursor.fetchone()
-        while row:
-            print(row[0])
-            row = cursor.fetchone()
+    def insert(self, table_name: str, data_frame: pd.DataFrame, if_exists: str) -> None:
+        data_frame.to_sql(table_name, con=self.engine,
+                          if_exists=if_exists, chunksize=50, method='multi')

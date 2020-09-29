@@ -2,3 +2,5 @@ sqlalchemy
 requests
 pandas
 nose
+pyodbc
+python-decouple
