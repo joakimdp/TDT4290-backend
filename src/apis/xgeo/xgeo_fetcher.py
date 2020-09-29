@@ -1,6 +1,9 @@
 import requests
 from datetime import timedelta
 import apis.fetcher as fetcher
+import pandas as pd
+from datetime import datetime
+import re
 
 
 class XgeoFetcher(fetcher.Fetcher):
@@ -44,44 +47,67 @@ class XgeoFetcher(fetcher.Fetcher):
 
         return requests.get(api_url).json()
 
+    def convert_json_response_to_value_list(json_response_dict):
+        """
+        Converts a json-response from the api to a list containing just
+        the value points inside the SeriesPoints key.
+        """
+        series_points = json_response_dict[0]["SeriesPoints"]
+        return list(map(lambda s_p: s_p["Value"], series_points))
+
+    def generate_date_indices(json_response):
+        """
+        Input is a json response and output is a list of dates for
+        this response in human readable format.
+        """
+        indices = []
+
+        series_points = json_response[0]['SeriesPoints']
+        for day in series_points:
+            timestamp = int(re.split(r'\(|\)', day['Key'])[1]) / 1000
+            time_string = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')
+            indices.append(time_string)
+
+        return indices
+
     def fetch_data_for_avalanche_incident(avalanche_incident):
         """
-        Returns a dictionary containing id of avalanche_incident and
-        data for each datacode in DATA_CODE_LIST of the form:
+        Fetches data and returns a pandas dataframe containing data
+        for the avalanche_incident. For the dataframe, the indexes are
+        dates for DAYS_EARLIER number of days before the incidents.
 
-        data_code_name: raw_json_response
-
+        The dataframe will contain one column with data for each tuple
+        in DATA_CODE_LIST
         """
-        incident_xgeo_data = {}
-        incident_xgeo_data["id"] = avalanche_incident.id
+        xgeo_data_dict = {}
+        indices = []
+
         for data_code_tuple in XgeoFetcher.DATA_CODE_LIST:
             data_code = data_code_tuple[0]
             data_code_name = data_code_tuple[1]
 
             response = XgeoFetcher.fetch_data_for_data_code(avalanche_incident, data_code)
-            incident_xgeo_data[data_code_name] = response
 
-        return incident_xgeo_data
+            # The indexes are the same for each response, so we only
+            # need to generate theese once
+            if not indices:
+                indices = XgeoFetcher.generate_date_indices(response)
+
+            xgeo_data_dict[data_code_name] = XgeoFetcher.convert_json_response_to_value_list(response)
+
+        return pd.DataFrame(data=xgeo_data_dict, index=indices)
 
     def fetch(self, avalanche_incident_list):
         """
-        Returns a list of dictionaries containing data from the
-        requests in the following form:
-        [
-          {
-            id: id_of_avalanche_incident
-            data_code_name_1: json_response_1
-            data_code_name_2: json_response_2
-            ...
-            data_code_name_n: json_response_n
-          },
-          ...
-        ]
+        Returns a dictionary where the key is the incident id and the
+        value is a dataframe containing relevant data from the xgeo
+        api. The format of the dataframe is spesified in
+        fetch_data_for_avalanche_incident
         """
-        raw_data = []
-        for avalanche_incident in avalanche_incident_list:
-            # Create dictionary for storing the data
-            avalanche_incident_xgeo_data = XgeoFetcher.fetch_data_for_avalanche_incident(avalanche_incident)
-            raw_data.append(avalanche_incident_xgeo_data)
+        dataframe_dict = {}
 
-        return raw_data
+        for avalanche_incident in avalanche_incident_list:
+            dataframe = XgeoFetcher.fetch_data_for_avalanche_incident(avalanche_incident)
+            dataframe_dict[avalanche_incident.id] = dataframe
+
+        return dataframe_dict
