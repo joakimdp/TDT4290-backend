@@ -1,6 +1,7 @@
 import unittest
 from apis.regobs.regobs_processor import RegobsProcessor
 import pandas as pd
+import numpy as np
 import pandas.testing as pd_testing
 
 
@@ -17,7 +18,7 @@ class TestRegobsProcessor(unittest.TestCase):
     def test_process(self):
         example_df = pd.DataFrame(
             [["2134", 340000, 5710000, None, "/Date(1359817740000)/", "/Date(1355817740000)/", None, "/Date(1353817740000)/"],
-             ["1234", 340000, 5710000, None, None, None, None, "/Date(1359817740000)/"]],
+             ["1234", 340000, 5710000, None, None, np.nan, None, "/Date(1359817740000)/"]],
             columns=[
                 "reg_id",
                 "utm_east_reg",

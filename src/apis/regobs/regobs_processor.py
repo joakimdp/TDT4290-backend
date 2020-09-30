@@ -26,7 +26,7 @@ class RegobsProcessor(processor.Processor):
 
         for column in RegobsProcessor.TIMESTAMPS_COLUMNS:
             timestamp = row[column]
-            if (row[column]):
+            if (row[column] and isinstance(row[column], str)):
                 converted_timestamp = RegobsProcessor.convert_posix_to_datetime(timestamp)
                 timestamps_for_row.append(converted_timestamp)
 
@@ -80,7 +80,7 @@ class RegobsProcessor(processor.Processor):
         }, inplace=True)
 
         # Remove deleted registrations
-        df = df[df['deleted_date'].isna()]
+        # df = df[df['deleted_date'].isna()]
 
         # Add lat, lng and time variables
         lat = []
