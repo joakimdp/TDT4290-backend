@@ -2,8 +2,7 @@ import requests
 from datetime import timedelta
 import apis.fetcher as fetcher
 import pandas as pd
-from datetime import datetime, timedelta
-import re
+from time import sleep
 
 
 class XgeoFetcher(fetcher.Fetcher):
@@ -96,8 +95,14 @@ class XgeoFetcher(fetcher.Fetcher):
         fetch_data_for_avalanche_incident
         """
         dataframe_dict = {}
+        x = 1
 
         for avalanche_incident in avalanche_incident_list:
+            print(str(x) + ": Fetching data for id=" + str(avalanche_incident.id))
+            x += 1
+            if (x % 200 == 0):
+                print("sleeping for 1 minute")
+                sleep(61)
             dataframe = XgeoFetcher.fetch_data_for_avalanche_incident(avalanche_incident)
             dataframe_dict[avalanche_incident.id] = dataframe
 
