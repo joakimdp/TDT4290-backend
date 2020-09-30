@@ -28,7 +28,7 @@ def create_avalanche_incident_list(df: pd.DataFrame):
     for index, row in df.iterrows():
         aval_objects.append(AvalancheIncident(
             row["reg_id"],
-            row["dt_reg_time"],
+            row["time"],
             (row["utm_east_reg"], row["utm_north_reg"]),
             (row["lat"], row["lng"])))
 
