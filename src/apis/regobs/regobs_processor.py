@@ -46,8 +46,15 @@ class RegobsProcessor(processor.Processor):
             '__metadata.uri': 'metadata_uri',
             '__metadata.type': 'metadata_type',
             'UTMEast': 'utm_east_reg',
-            'UTMNorth': 'utm_north_reg'
+            'UTMNorth': 'utm_north_reg',
+            'DtObsTime':'dt_obs_time',
+            'DtRegTime': 'dt_reg_time',
+            'DeletedDate': 'deleted_date',
+            'DtChangeTime': 'dt_change_time'
         }, inplace=True)
+        
+        # Remove deleted registrations
+        df = df[df['deleted_date'].isna()]
 
         '''
         Add columns with latlong coordinates
@@ -68,3 +75,5 @@ class RegobsProcessor(processor.Processor):
         df["lat"] = lat
 
         return df
+
+
