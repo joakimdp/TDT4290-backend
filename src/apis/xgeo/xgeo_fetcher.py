@@ -53,6 +53,9 @@ class XgeoFetcher(fetcher.Fetcher):
         the value points inside the SeriesPoints key.
         """
         series_points = json_response_dict[0]["SeriesPoints"]
+        if not series_points:
+            return [None for x in range(XgeoFetcher.DAYS_EARLIER + 1)]
+
         return list(map(lambda s_p: s_p["Value"], series_points))
 
     def generate_date_indices(json_response):
@@ -95,7 +98,8 @@ class XgeoFetcher(fetcher.Fetcher):
 
             xgeo_data_dict[data_code_name] = XgeoFetcher.convert_json_response_to_value_list(response)
 
-        return pd.DataFrame(data=xgeo_data_dict, index=indices)
+            print(xgeo_data_dict)
+            return pd.DataFrame(data=xgeo_data_dict, index=indices)
 
     def fetch(self, avalanche_incident_list):
         """

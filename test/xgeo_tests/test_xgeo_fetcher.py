@@ -80,6 +80,28 @@ class TestXgeoFetcher(unittest.TestCase):
         ]
         self.assertEqual(converted_response, expected_converted_response)
 
+    def test_convert_json_response_to_value_list_empty_response(self):
+        example_json_response = [{
+            'LegendText': '179633;6782269 (519 moh.), Døgntemperatur v2.0',
+            'SeriesPoints': [],
+            'Statistics': []
+        }]
+        converted_response = XgeoFetcher.convert_json_response_to_value_list(example_json_response)
+        expected_converted_response = [
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None
+        ]
+        self.assertEqual(converted_response, expected_converted_response)
+
     def test_generate_indices(self):
         example_json_response = [{
             'LegendText': '179633;6782269 (519 moh.), Nysnødybde 3 døgn',
