@@ -1,10 +1,36 @@
 import apis.processor as processor
 import pandas as pd
-import math
 import util.utm_converter as utm_converter
+from datetime import datetime
+import re
 
 
 class RegobsProcessor(processor.Processor):
+    TIMESTAMPS_COLUMNS = [
+        "dt_avalanche_time",
+        "dt_end_time",
+        "dt_obs_time",
+        "dt_reg_time"
+    ]
+
+    def convert_posix_to_datetime(time_string):
+        posix_time = int(re.split(r'\(|\)', time_string)[1]) / 1000
+        return datetime.fromtimestamp(posix_time)
+
+    def get_timestamp_from_row(row):
+        """
+        Input is a dataframe-row. Output is the earliest timestamp of
+        the row for alle columns in TIMESTAMPS_COLUMNS
+        """
+        timestamps_for_row = []
+
+        for column in RegobsProcessor.TIMESTAMPS_COLUMNS:
+            timestamp = row[column]
+            if (row[column]):
+                converted_timestamp = RegobsProcessor.convert_posix_to_datetime(timestamp)
+                timestamps_for_row.append(converted_timestamp)
+
+        return sorted(timestamps_for_row)[0]
 
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
 
@@ -47,33 +73,32 @@ class RegobsProcessor(processor.Processor):
             '__metadata.type': 'metadata_type',
             'UTMEast': 'utm_east_reg',
             'UTMNorth': 'utm_north_reg',
-            'DtObsTime':'dt_obs_time',
+            'DtObsTime': 'dt_obs_time',
             'DtRegTime': 'dt_reg_time',
             'DeletedDate': 'deleted_date',
             'DtChangeTime': 'dt_change_time'
         }, inplace=True)
-        
+
         # Remove deleted registrations
         df = df[df['deleted_date'].isna()]
 
-        '''
-        Add columns with latlong coordinates
-        '''
+        # Add lat, lng and time variables
         lat = []
         lng = []
+        time = []
 
         for index, row in df.iterrows():
             utmEast = int(row["utm_east_reg"])
             utmNorth = int(row["utm_north_reg"])
-
             coor = utm_converter.convert(utmEast, utmNorth)
 
-            lng.append(float(coor[1]))
             lat.append(float(coor[0]))
+            lng.append(float(coor[1]))
 
-        df["lng"] = lng
+            time.append(RegobsProcessor.get_timestamp_from_row(row))
+
         df["lat"] = lat
+        df["lng"] = lng
+        df["time"] = time
 
         return df
-
-
