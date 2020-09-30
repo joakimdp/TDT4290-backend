@@ -2,7 +2,7 @@ import requests
 from datetime import timedelta
 import apis.fetcher as fetcher
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 
 
@@ -58,20 +58,14 @@ class XgeoFetcher(fetcher.Fetcher):
 
         return list(map(lambda s_p: s_p["Value"], series_points))
 
-    def generate_date_indices(json_response):
+    def generate_date_indices(start_date):
         """
         Input is a json response and output is a list of dates for
         this response in human readable format.
         """
-        indices = []
-
-        series_points = json_response[0]['SeriesPoints']
-        for day in series_points:
-            timestamp = int(re.split(r'\(|\)', day['Key'])[1]) / 1000
-            time_string = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')
-            indices.append(time_string)
-
-        return indices
+        dates = [start_date - timedelta(x) for x in range(XgeoFetcher.DAYS_EARLIER + 1)]
+        dates.reverse()
+        return [date.strftime('%Y-%m-%d') for date in dates]
 
     def fetch_data_for_avalanche_incident(avalanche_incident):
         """
@@ -83,23 +77,16 @@ class XgeoFetcher(fetcher.Fetcher):
         in DATA_CODE_LIST
         """
         xgeo_data_dict = {}
-        indices = []
+        indices = XgeoFetcher.generate_date_indices(avalanche_incident.time)
 
         for data_code_tuple in XgeoFetcher.DATA_CODE_LIST:
             data_code = data_code_tuple[0]
             data_code_name = data_code_tuple[1]
 
             response = XgeoFetcher.fetch_data_for_data_code(avalanche_incident, data_code)
-
-            # The indexes are the same for each response, so we only
-            # need to generate theese once
-            if not indices:
-                indices = XgeoFetcher.generate_date_indices(response)
-
             xgeo_data_dict[data_code_name] = XgeoFetcher.convert_json_response_to_value_list(response)
 
-            print(xgeo_data_dict)
-            return pd.DataFrame(data=xgeo_data_dict, index=indices)
+        return pd.DataFrame(data=xgeo_data_dict, index=indices)
 
     def fetch(self, avalanche_incident_list):
         """
