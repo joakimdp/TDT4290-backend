@@ -80,25 +80,32 @@ class TestXgeoFetcher(unittest.TestCase):
         ]
         self.assertEqual(converted_response, expected_converted_response)
 
-    def test_generate_indices(self):
+    def test_convert_json_response_to_value_list_empty_response(self):
         example_json_response = [{
-            'LegendText': '179633;6782269 (519 moh.), Nysnødybde 3 døgn',
-            'SeriesPoints': [
-                {'Key': '/Date(1549753200000)/', 'Value': 24.700000762939453, 'CorrectionMark': 0},
-                {'Key': '/Date(1549839600000)/', 'Value': 11.899999618530273, 'CorrectionMark': 0},
-                {'Key': '/Date(1549926000000)/', 'Value': 3, 'CorrectionMark': 0},
-                {'Key': '/Date(1550012400000)/', 'Value': 0.6000000238418579, 'CorrectionMark': 0},
-                {'Key': '/Date(1550098800000)/', 'Value': 0, 'CorrectionMark': 0},
-                {'Key': '/Date(1550185200000)/', 'Value': 0, 'CorrectionMark': 0},
-                {'Key': '/Date(1550271600000)/', 'Value': 0, 'CorrectionMark': 0},
-                {'Key': '/Date(1550358000000)/', 'Value': 0, 'CorrectionMark': 0},
-                {'Key': '/Date(1550444400000)/', 'Value': 0, 'CorrectionMark': 0},
-                {'Key': '/Date(1550530800000)/', 'Value': 0, 'CorrectionMark': 0},
-                {'Key': '/Date(1550617200000)/', 'Value': 0, 'CorrectionMark': 0}],
+            'LegendText': '179633;6782269 (519 moh.), Døgntemperatur v2.0',
+            'SeriesPoints': [],
             'Statistics': []
         }]
+        converted_response = XgeoFetcher.convert_json_response_to_value_list(example_json_response)
+        expected_converted_response = [
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None
+        ]
+        self.assertEqual(converted_response, expected_converted_response)
 
-        indices = XgeoFetcher.generate_date_indices(example_json_response)
+    def test_generate_date_indices(self):
+        start_date = date.fromisoformat("2019-02-20")
+
+        indices = XgeoFetcher.generate_date_indices(start_date)
         expected_indices = ['2019-02-10', '2019-02-11', '2019-02-12', '2019-02-13', '2019-02-14', '2019-02-15', '2019-02-16', '2019-02-17', '2019-02-18', '2019-02-19', '2019-02-20']
         self.assertEquals(indices, expected_indices)
 
