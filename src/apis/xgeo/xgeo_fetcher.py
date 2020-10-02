@@ -100,7 +100,7 @@ class XgeoFetcher(fetcher.Fetcher):
         for avalanche_incident in avalanche_incident_list:
             print(str(x) + ": Fetching data for id=" + str(avalanche_incident.id))
             x += 1
-            if (x % 200 == 0):
+            if (x % 300 == 0):
                 print("sleeping for 1 minute")
                 sleep(61)
             dataframe = XgeoFetcher.fetch_data_for_avalanche_incident(avalanche_incident)
