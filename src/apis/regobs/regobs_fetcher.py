@@ -30,6 +30,10 @@ class RegobsFetcher(fetcher.Fetcher):
         self.__combine_columns('__metadata.uri')
         self.__combine_columns('__metadata.type')
 
+        # Get Registration data
+        print('Fetching Registration')
+        self.__get_registration_data()
+
         # Get ObsLocation data
         print('Fetching ObsLocation..')
         self.__get_obs_location_data()
@@ -91,3 +95,35 @@ class RegobsFetcher(fetcher.Fetcher):
 
         self.regobs_df['UTMEast'] = utm_east
         self.regobs_df['UTMNorth'] = utm_north
+
+    def __get_registration_data(self) -> None:
+        dt_obs_time = []
+        dt_reg_time = []
+        deleted_date = []
+        dt_change_time = []
+
+        s = requests.Session()
+        retries = Retry(total=5, backoff_factor=1,
+                        status_forcelist=[502, 503, 504])
+        s.mount('http://', HTTPAdapter(max_retries=retries))
+
+        for index, row in self.regobs_df.iterrows():
+            reg_id = row['RegID']
+
+            try:
+                registration = s.get(
+                    'http://api.nve.no/hydrology/RegObs/v3.2.0/OData.svc/Registration(' + str(reg_id) + ')?$format=json').json()['d']
+                dt_obs_time.append(registration['DtObsTime'])
+                dt_reg_time.append(registration['DtRegTime'])
+                deleted_date.append(registration['DeletedDate'])
+                dt_change_time.append(registration['DtChangeTime'])
+            except MaxRetryError as e:
+                dt_obs_time.append(None)
+                dt_reg_time.append(None)
+                deleted_date.append(None)
+                dt_change_time.append(None)
+
+        self.regobs_df['DtObsTime'] = dt_obs_time
+        self.regobs_df['DtRegTime'] = dt_reg_time
+        self.regobs_df['DeletedDate'] = deleted_date
+        self.regobs_df['DtChangeTime'] = dt_change_time
