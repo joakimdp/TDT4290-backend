@@ -26,6 +26,7 @@ class RegobsData(Base):
     snow_line = Column(Integer)
     utm_zone_start = Column(Integer)
     utm_east_start = Column(Integer)
+    utm_north_start = Column(Integer)
     valid_exposition = Column(Integer)
     aval_cause_tid = Column(Integer)
     fracture_heigth = Column(Integer)
@@ -51,6 +52,12 @@ class RegobsData(Base):
     utm_north_reg = Column(Integer)
     lat = Column(Float)
     lng = Column(Float)
+    dt_obs_time = Column(Date)
+    dt_reg_time = Column(Date)
+    deleted_date = Column(Date)
+    dt_change_time = Column(Date)
+    utm_east_prioritized = Column(Integer)
+    utm_north_prioritized = Column(Integer)
 
 
 class RegobsInitializer(initializer.Initializer):

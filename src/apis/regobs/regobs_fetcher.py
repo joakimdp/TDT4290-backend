@@ -30,13 +30,9 @@ class RegobsFetcher(fetcher.Fetcher):
         self.__combine_columns('__metadata.uri')
         self.__combine_columns('__metadata.type')
 
-        # Get Registration data
-        print('Fetching Registration')
-        self.__get_registration_data()
-
         # Get ObsLocation data
-        print('Fetching ObsLocation..')
-        self.__get_obs_location_data()
+        print('Fetching additional data..')
+        self.__get_additional_data()
 
         print('All data fetched from RegObs.')
         return self.regobs_df
@@ -72,9 +68,16 @@ class RegobsFetcher(fetcher.Fetcher):
         self.regobs_df = self.regobs_df.drop(
             columns=[column_name + '_x', column_name + '_y'])
 
-    def __get_obs_location_data(self) -> None:
+    def __get_additional_data(self) -> None:
+        # obs_location data
         utm_east = []
         utm_north = []
+
+        # registration data
+        dt_obs_time = []
+        dt_reg_time = []
+        deleted_date = []
+        dt_change_time = []
 
         s = requests.Session()
         retries = Retry(total=5, backoff_factor=1,
@@ -93,23 +96,6 @@ class RegobsFetcher(fetcher.Fetcher):
                 utm_east.append(None)
                 utm_north.append(None)
 
-        self.regobs_df['UTMEast'] = utm_east
-        self.regobs_df['UTMNorth'] = utm_north
-
-    def __get_registration_data(self) -> None:
-        dt_obs_time = []
-        dt_reg_time = []
-        deleted_date = []
-        dt_change_time = []
-
-        s = requests.Session()
-        retries = Retry(total=5, backoff_factor=1,
-                        status_forcelist=[502, 503, 504])
-        s.mount('http://', HTTPAdapter(max_retries=retries))
-
-        for index, row in self.regobs_df.iterrows():
-            reg_id = row['RegID']
-
             try:
                 registration = s.get(
                     'http://api.nve.no/hydrology/RegObs/v3.2.0/OData.svc/Registration(' + str(reg_id) + ')?$format=json').json()['d']
@@ -122,6 +108,9 @@ class RegobsFetcher(fetcher.Fetcher):
                 dt_reg_time.append(None)
                 deleted_date.append(None)
                 dt_change_time.append(None)
+
+        self.regobs_df['UTMEast'] = utm_east
+        self.regobs_df['UTMNorth'] = utm_north
 
         self.regobs_df['DtObsTime'] = dt_obs_time
         self.regobs_df['DtRegTime'] = dt_reg_time

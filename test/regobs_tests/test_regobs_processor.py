@@ -62,7 +62,8 @@ class TestRegobsProcessor(unittest.TestCase):
 
     def test_convert_posix_to_datetime(self):
         example_time_string = "/Date(1359817740000)/"
-        datetime_object = RegobsProcessor.convert_posix_to_datetime(example_time_string)
+        datetime_object = RegobsProcessor._RegobsProcessor__convert_posix_to_datetime(
+            example_time_string)
         self.assertEqual(datetime_object.year, 2013)
         self.assertEqual(datetime_object.month, 2)
 
@@ -74,7 +75,8 @@ class TestRegobsProcessor(unittest.TestCase):
             "dt_reg_time": "/Date(135217740000)/"
         }
 
-        datetime_object = RegobsProcessor.get_timestamp_from_row(row)
+        datetime_object = RegobsProcessor._RegobsProcessor__get_timestamp_from_row(
+            row)
 
         self.assertEqual(datetime_object.year, 1974)
         self.assertEqual(datetime_object.month, 4)
