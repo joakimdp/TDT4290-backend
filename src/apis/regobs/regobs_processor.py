@@ -53,6 +53,7 @@ class RegobsProcessor(processor.Processor):
                         prioritized_utm_east.append(utm_east)
                         prioritized_utm_north.append(utm_north)
                         break
+
             if len(prioritized_utm_east) < (index + 1):
                 prioritized_utm_east.append(0)
                 prioritized_utm_north.append(0)
@@ -111,7 +112,7 @@ class RegobsProcessor(processor.Processor):
         # Append prioritized utm coordinates columns
         df = self.__append_prioritized_utm_coordinates(df)
         # Remove deleted registrations
-        # df = df[df['deleted_date'].isna()]
+        df = df[df['deleted_date'].isna()].copy()
 
         # Add lat, lng and time variables
         lat = []
