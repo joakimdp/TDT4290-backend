@@ -65,5 +65,5 @@ Dersom du ikke ønsker å kjøre alle testene kan du spesifisere en test-folder 
 nosetests -s ./test/xgeo_tests/
 ```
 
-Obs: Hvis man ikke bruker det virtuelle miljøet må man først innstalere nosetests med `pip install nose` (ev. `pip3`) for å kunne bruke kjøre
+Obs: Hvis man ikke bruker det virtuelle miljøet må man først innstallere nosetests med `pip install nose` (ev. `pip3`) for å kunne kjøre
 kommandoen.
