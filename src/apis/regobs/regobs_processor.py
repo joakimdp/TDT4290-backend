@@ -35,6 +35,32 @@ class RegobsProcessor(processor.Processor):
 
         return sorted(timestamps_for_row)[0]
 
+    def __append_prioritized_utm_coordinates(self, df: pd.DataFrame) -> None:
+        prioritized_utm_north = []
+        prioritized_utm_east = []
+
+        prioritization_order = [('utm_east_start', 'utm_north_start'),
+                                ('utm_east_stop', 'utm_north_stop'), ('utm_east_reg', 'utm_north_reg')]
+
+        for index, row in df.iterrows():
+            for utm_tuple in prioritization_order:
+                utm_east = row[utm_tuple[0]]
+                utm_north = row[utm_tuple[1]]
+
+                if utm_east != None and utm_north != None:
+                    # TODO: remove when data is properly filtered
+                    if utm_east > -1000000 or utm_north > -1000000:
+                        prioritized_utm_east.append(utm_east)
+                        prioritized_utm_north.append(utm_north)
+                        break
+            if len(prioritized_utm_east) < (index + 1):
+                prioritized_utm_east.append(0)
+                prioritized_utm_north.append(0)
+
+        df['utm_east_prioritized'] = prioritized_utm_east
+        df['utm_north_prioritized'] = prioritized_utm_north
+        return df
+
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
 
         df.rename(columns={
@@ -52,7 +78,7 @@ class RegobsProcessor(processor.Processor):
             'DtAvalancheTime': 'dt_avalanche_time',
             'SnowLine': 'snow_line',
             'UTMEastStart': 'utm_east_start',
-            'UTMNorthStart': 'utm_north_Start',
+            'UTMNorthStart': 'utm_north_start',
             'ValidExposition': 'valid_exposition',
             'AvalCauseTID': 'aval_cause_tid',
             'FractureHeigth': 'fracture_height',
@@ -82,6 +108,8 @@ class RegobsProcessor(processor.Processor):
             'DtChangeTime': 'dt_change_time'
         }, inplace=True)
 
+        # Append prioritized utm coordinates columns
+        df = self.__append_prioritized_utm_coordinates(df)
         # Remove deleted registrations
         # df = df[df['deleted_date'].isna()]
 
@@ -91,8 +119,10 @@ class RegobsProcessor(processor.Processor):
         time = []
 
         for index, row in df.iterrows():
-            utmEast = int(row["utm_east_reg"])
-            utmNorth = int(row["utm_north_reg"])
+            utmEast = int(row["utm_east_prioritized"])
+            utmNorth = int(row["utm_north_prioritized"])
+            if utmEast < 0 or utmNorth < 0:
+                coor = (None, None)
             coor = utm_converter.convert(utmEast, utmNorth)
 
             lat.append(float(coor[0]))

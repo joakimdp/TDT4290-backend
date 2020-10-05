@@ -54,21 +54,21 @@ def main():
     regobs_initializer = RegobsInitializer(engine)
     regobs_initializer.initialize_tables()
 
-    XgeoInitializer(engine).initialize_tables()
+    # XgeoInitializer(engine).initialize_tables()
 
-    xgeo_rows = get_xgeo_data()
+    # xgeo_rows = get_xgeo_data()
 
-    print('Inserting Xgeo data into database table..')
-    db_inserter = DbInserter(engine)
-    db_inserter.insert('xgeo_data', xgeo_rows, 'replace')
-    print('Data successfully imported to database table')
+    regobs_fetcher = RegobsFetcher()
+    data = regobs_fetcher.fetch()
+
+    regobs_processor = RegobsProcessor()
+    processed_data = regobs_processor.process(data)
 
     # Insert Regobs data into database table
-
-    # print('Inserting RegObs data into database table..')
-    # db_inserter = DbInserter(engine)
-    # db_inserter.insert('regobs_data', processed_regobs_data, 'replace')
-    # print('Data successfully imported to database table')
+    print('Inserting RegObs data into database table..')
+    db_inserter = DbInserter(engine)
+    db_inserter.insert('regobs_data', processed_data, 'replace')
+    print('Data successfully imported to database table')
 
 
 def create_db_connection() -> Engine:
