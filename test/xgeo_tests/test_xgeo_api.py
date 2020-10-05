@@ -21,7 +21,8 @@ class TestXgeoApi(unittest.TestCase):
             coords_latlng=(60.474065, 7.882042)
         ))
 
-        database_rows = Xgeo().get_data(avalanche_incident_list)
+        dataframe_dict = Xgeo().get_data(avalanche_incident_list)
+        database_rows = dataframe_dict["xgeo_data"]
 
         self.assertIn("id", database_rows.columns)
         self.assertIn("date", database_rows.columns)
