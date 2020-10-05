@@ -1,74 +1,13 @@
 from apis.regobs.regobs_fetcher import RegobsFetcher
 from apis.regobs.regobs_initializer import RegobsInitializer
 from apis.regobs.regobs_processor import RegobsProcessor
-from apis.xgeo.xgeo_fetcher import XgeoFetcher
-from apis.xgeo.xgeo_processor import XgeoProcessor
 from apis.xgeo.xgeo_initializer import XgeoInitializer
 from apis.xgeo.xgeo import Xgeo
 from db_inserter import DbInserter
 from sqlalchemy.engine import create_engine
 from sqlalchemy.engine.base import Engine
 from decouple import config
-from datetime import date
-import pandas as pd
-from util.avalanche_incident import AvalancheIncident, create_avalanche_incident_list
-import time
-
-
-def get_xgeo_data():
-    start_time = time.time()
-
-    # Fetch and process RegObs data
-    regobs_fetcher = RegobsFetcher()
-    fetched_regobs_data = regobs_fetcher.fetch()
-
-    print('Processing RegObs data..')
-    regobs_processor = RegobsProcessor()
-    processed_regobs_data = regobs_processor.process(fetched_regobs_data)
-
-    aval_list = create_avalanche_incident_list(processed_regobs_data)
-
-    print("Fetching data from xgeo")
-    # aval_list = aval_list[-50:]
-
-    dataframe_dict = XgeoFetcher().fetch(aval_list)
-
-    print("-------------------------------")
-    for key, value in dataframe_dict.items():
-        print("Data for id " + str(key) + ":")
-        print()
-        # print(value)
-        print(value)
-        print()
-        print("-------------------------------")
-
-    end_time = time.time()
-    print("Finished in " + str(end_time - start_time) + " seconds")
-    return XgeoProcessor().process(dataframe_dict)
-
-
-def main():
-    # Initialize database connection and database tables
-    engine = create_db_connection()
-
-    regobs_initializer = RegobsInitializer(engine)
-    regobs_initializer.initialize_tables()
-
-    XgeoInitializer(engine).initialize_tables()
-
-    xgeo_rows = get_xgeo_data()
-
-    print('Inserting Xgeo data into database table..')
-    db_inserter = DbInserter(engine)
-    db_inserter.insert('xgeo_data', xgeo_rows, 'replace')
-    print('Data successfully imported to database table')
-
-    # Insert Regobs data into database table
-
-    # print('Inserting RegObs data into database table..')
-    # db_inserter = DbInserter(engine)
-    # db_inserter.insert('regobs_data', processed_regobs_data, 'replace')
-    # print('Data successfully imported to database table')
+from util.avalanche_incident import create_avalanche_incident_list
 
 
 def create_db_connection() -> Engine:
@@ -83,6 +22,65 @@ def create_db_connection() -> Engine:
     engine = create_engine(connection_string, connect_args={'timeout': 4000})
 
     return engine
+
+
+def get_table_dict_for_apis_in_list(api_list, avalanche_incident_list):
+    table_dict = {}
+
+    for api in api_list:
+        api_table_dict = api.get_data(avalanche_incident_list)
+        table_dict.update(api_table_dict)
+
+    return table_dict
+
+
+def insert_data_for_table_dict(table_dict, db_inserter):
+    for table_name, rows in table_dict.items():
+        print('Inserting data into {}...'.format(table_name))
+        db_inserter.insert(table_name, rows, 'replace')
+        print('{} successfully imported into database table'.format(table_name))
+
+
+def fetch_regobs_data():
+    regobs_fetcher = RegobsFetcher()
+    fetched_regobs_data = regobs_fetcher.fetch()
+    regobs_processor = RegobsProcessor()
+    return regobs_processor.process(fetched_regobs_data)
+
+
+def insert_regobs_data_to_database(regobs_data, db_inserter):
+    print('Inserting RegObs data into database table..')
+    db_inserter.insert('regobs_data', regobs_data, 'replace')
+    print('Data successfully imported to database table')
+
+
+def initialize_tables(initializer_list, engine):
+    for initializer_class in initializer_list:
+        initializer_class(engine).initialize_tables()
+
+
+def main():
+    # Get data for regobs
+    processed_regobs_data = fetch_regobs_data()
+
+    # Get data for rest of APIs
+    avalanche_incident_list = create_avalanche_incident_list(processed_regobs_data)
+    api_list = [Xgeo()]
+    api_table_dict = get_table_dict_for_apis_in_list(api_list, avalanche_incident_list)
+
+    # Create engine
+    engine = create_db_connection()
+    db_inserter = DbInserter(engine)
+
+    print("Initializing tables")
+    initializer_class_list = [RegobsInitializer, XgeoInitializer]
+    initialize_tables(initializer_class_list, engine)
+
+    print("Inserting data into database")
+    insert_regobs_data_to_database(processed_regobs_data, db_inserter)
+    insert_data_for_table_dict(api_table_dict, db_inserter)
+
+    print("Done")
 
 
 if __name__ == "__main__":

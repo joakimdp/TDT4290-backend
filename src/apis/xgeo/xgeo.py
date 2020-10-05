@@ -14,4 +14,4 @@ class Xgeo(Api):
         """
         dataframe_dict = XgeoFetcher().fetch(avalance_incident_list)
         database_rows = XgeoProcessor().process(dataframe_dict)
-        return database_rows
+        return {Xgeo.table_name: database_rows}
