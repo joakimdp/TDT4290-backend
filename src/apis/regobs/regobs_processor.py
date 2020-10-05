@@ -80,7 +80,7 @@ class RegobsProcessor(processor.Processor):
         }, inplace=True)
 
         # Remove deleted registrations
-        # df = df[df['deleted_date'].isna()]
+        df = df[df['deleted_date'].isna()].copy()
 
         # Add lat, lng and time variables
         lat = []
