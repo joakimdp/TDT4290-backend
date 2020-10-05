@@ -3,6 +3,7 @@ import pandas as pd
 import util.utm_converter as utm_converter
 from datetime import datetime
 import re
+from typing import List
 
 
 class RegobsProcessor(processor.Processor):
@@ -19,7 +20,7 @@ class RegobsProcessor(processor.Processor):
         return datetime.fromtimestamp(posix_time)
 
     @staticmethod
-    def __get_timestamp_from_row(row) -> list:
+    def __get_timestamp_from_row(row) -> List[datetime]:
         """
         Input is a dataframe-row. Output is the earliest timestamp of
         the row for alle columns in TIMESTAMPS_COLUMNS
