@@ -13,11 +13,13 @@ class RegobsProcessor(processor.Processor):
         "dt_reg_time"
     ]
 
-    def convert_posix_to_datetime(time_string):
+    @staticmethod
+    def __convert_posix_to_datetime(time_string) -> datetime:
         posix_time = int(re.split(r'\(|\)', time_string)[1]) / 1000
         return datetime.fromtimestamp(posix_time)
 
-    def get_timestamp_from_row(row):
+    @staticmethod
+    def __get_timestamp_from_row(row) -> list:
         """
         Input is a dataframe-row. Output is the earliest timestamp of
         the row for alle columns in TIMESTAMPS_COLUMNS
@@ -27,7 +29,8 @@ class RegobsProcessor(processor.Processor):
         for column in RegobsProcessor.TIMESTAMPS_COLUMNS:
             timestamp = row[column]
             if (row[column] and isinstance(row[column], str)):
-                converted_timestamp = RegobsProcessor.convert_posix_to_datetime(timestamp)
+                converted_timestamp = RegobsProcessor.__convert_posix_to_datetime(
+                    timestamp)
                 timestamps_for_row.append(converted_timestamp)
 
         return sorted(timestamps_for_row)[0]
@@ -95,7 +98,7 @@ class RegobsProcessor(processor.Processor):
             lat.append(float(coor[0]))
             lng.append(float(coor[1]))
 
-            time.append(RegobsProcessor.get_timestamp_from_row(row))
+            time.append(RegobsProcessor.__get_timestamp_from_row(row))
 
         df["lat"] = lat
         df["lng"] = lng
