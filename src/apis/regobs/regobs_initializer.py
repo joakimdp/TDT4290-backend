@@ -58,6 +58,7 @@ class RegobsData(Base):
     dt_change_time = Column(Date)
     utm_east_prioritized = Column(Integer)
     utm_north_prioritized = Column(Integer)
+    forecast_region = Column(Integer)
 
 
 class RegobsInitializer(initializer.Initializer):

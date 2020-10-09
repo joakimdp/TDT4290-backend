@@ -12,7 +12,7 @@ from util.avalanche_incident import create_avalanche_incident_list
 def create_db_connection() -> Engine:
     server = 'avalanche-server.database.windows.net,1433'
     database = 'avalanche-db'
-    username = config('USERNAME')
+    username = config('DBUSERNAME')
     password = config('PASSWORD')
     driver = 'ODBC Driver 17 for SQL Server'
 

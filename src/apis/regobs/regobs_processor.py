@@ -77,6 +77,7 @@ class RegobsProcessor(processor.Processor):
             'UTMZoneStop': 'utm_zone_stop',
             'UTMEastStop': 'utm_east_stop',
             'UTMNorthStop': 'utm_north_stop',
+            'ForecastRegion': 'forecast_region',
             'DtAvalancheTime': 'dt_avalanche_time',
             'SnowLine': 'snow_line',
             'UTMEastStart': 'utm_east_start',
