@@ -72,6 +72,7 @@ class RegobsFetcher(fetcher.Fetcher):
         # obs_location data
         utm_east = []
         utm_north = []
+        forecast_region = []
 
         # registration data
         dt_obs_time = []
@@ -92,9 +93,11 @@ class RegobsFetcher(fetcher.Fetcher):
                     'http://api.nve.no/hydrology/RegObs/v3.2.0/OData.svc/Registration(' + str(reg_id) + ')/ObsLocation?$format=json').json()['d']
                 utm_east.append(obs_location['UTMEast'])
                 utm_north.append(obs_location['UTMNorth'])
+                forecast_region.append(obs_location["ForecastRegionTID"])
             except MaxRetryError as e:
                 utm_east.append(None)
                 utm_north.append(None)
+                forecast_region.append(None)
 
             try:
                 registration = s.get(
@@ -111,6 +114,7 @@ class RegobsFetcher(fetcher.Fetcher):
 
         self.regobs_df['UTMEast'] = utm_east
         self.regobs_df['UTMNorth'] = utm_north
+        self.regobs_df['ForecastRegion'] = forecast_region
 
         self.regobs_df['DtObsTime'] = dt_obs_time
         self.regobs_df['DtRegTime'] = dt_reg_time
