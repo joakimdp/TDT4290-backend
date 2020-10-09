@@ -137,6 +137,4 @@ class RegobsProcessor(processor.Processor):
         df["lng"] = lng
         df["time"] = time
 
-        # Add current avalanche region
-
         return df
