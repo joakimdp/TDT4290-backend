@@ -1,5 +1,6 @@
 sqlalchemy
 requests
+aiohttp[speedups]
 pandas
 nose
 pyodbc

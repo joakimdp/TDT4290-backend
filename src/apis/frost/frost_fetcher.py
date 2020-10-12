@@ -1,10 +1,13 @@
+import asyncio
+import time
 import datetime as dt
 from typing import List, Dict, Any
-import requests
+import aiohttp
 import pandas as pd
 from decouple import config
 import apis.fetcher as fetcher
 from util.avalanche_incident import AvalancheIncident
+from util.async_wrappers import gather_with_concurrency
 
 
 class FrostFetcher(fetcher.Fetcher):
@@ -28,6 +31,8 @@ class FrostFetcher(fetcher.Fetcher):
     #     '?sources={0}&referencetime={1}/{2}&elements={3}'
 
     __time_format = '%Y-%m-%d'
+
+    __frost_auth = aiohttp.BasicAuth(config('FROST_CID'))
 
     sources_headers = (
         'id',
@@ -88,104 +93,179 @@ class FrostFetcher(fetcher.Fetcher):
     days_before = 2
 
     def fetch(self, incidents: List[AvalancheIncident]) -> (
-            Dict[str, pd.DataFrame]
+        Dict[str, pd.DataFrame]
     ):
         sources_df = pd.DataFrame(columns=type(self).sources_headers)
         observations_df = pd.DataFrame(columns=type(self).observations_headers)
 
-        s = requests.Session()
-        s.auth = (config('FROST_CID'), '')
+        loop = asyncio.get_event_loop()
+        # Fetch for all incidents
+        dfs = loop.run_until_complete(gather_with_concurrency(10, *(
+            self.fetch_for_incident(incident) for incident in incidents
+        )))
 
-        # For each incident ...
-        for incident in incidents:
-            interval_start = (
-                incident.time - dt.timedelta(days=type(self).days_before)
-            ).strftime(type(self).__time_format)
-            interval_end = (incident.time + dt.timedelta(days=1)).strftime(
-                type(self).__time_format
+        # Convert the result into a usable structure
+        dfs2 = {'sources': [], 'observations': []}
+        for ds in dfs:
+            for d in ds:
+                for key, value in d.items():
+                    dfs2[key].append(value)
+
+        for sources in dfs2['sources']:
+            sources_df = sources_df.append(sources, ignore_index=True)
+
+        for observations in dfs2['observations']:
+            observations_df = observations_df.append(
+                observations,
+                ignore_index=True
             )
-            # print('Interval start:', interval_start)
-            # print('Interval end:', interval_end)
-
-            # and for each element ...
-            for element in type(self).elements:
-                # get the n closest sources providing the element ...
-                sources_response = self.__fetch_sources(
-                    s,
-                    element,
-                    incident.coords_latlng[0],
-                    incident.coords_latlng[1],
-                    interval_start,
-                    interval_end
-                )
-
-                # and store them in a table.
-                source_distances = {}
-                for source in sources_response:
-                    source_distances[source['id']] = source['distance']
-                    source_row = self.__create_source_row(source)
-                    sources_df = sources_df.append(
-                        source_row,
-                        ignore_index=True
-                    )
-                # print(source_distances)
-
-                # Then fetch available observations for each source...
-                source_ids = sorted(source_distances.keys())
-                for source in source_ids:
-                    # print('Getting,', element, 'obs for source:', source)
-                    obs_response = self.__fetch_observations(
-                        s,
-                        source,
-                        interval_start,
-                        interval_end,
-                        element
-                    )
-
-                    if obs_response is None:
-                        continue
-
-                    # print('Source', source, 'has data for element', element)
-
-                    # and store them in another table.
-                    obs_df = self.__create_compound_obs_df(
-                        obs_response,
-                        source,
-                        incident.id,
-                        source_distances[source]
-                    )
-                    observations_df = observations_df.append(
-                        obs_df,
-                        ignore_index=True
-                    )
-
-        sources_df.drop_duplicates(inplace=True)
-        observations_df.drop_duplicates(inplace=True)
 
         return {
             'frost_sources': sources_df,
             'frost_observations': observations_df
         }
 
-    def __fetch_sources(
+    async def fetch_for_incident(
         self,
-        s: requests.Session,
-        el: str,
-        lat: float,
-        long: float,
+        incident: AvalancheIncident
+    ) -> (
+        List[Dict[str, pd.DataFrame]]
+    ):
+        print(f'Fetching for incident {incident.id}')
+        interval_start = (
+            incident.time - dt.timedelta(days=type(self).days_before)
+        ).strftime(type(self).__time_format)
+        interval_end = (incident.time + dt.timedelta(days=1)).strftime(
+            type(self).__time_format
+        )
+
+        # Fetch for all elements
+        return await asyncio.gather(*(
+            self.fetch_for_element(
+                incident,
+                element,
+                interval_start,
+                interval_end
+            ) for element in type(self).elements
+        ))
+
+    async def fetch_for_element(
+        self,
+        incident: AvalancheIncident,
+        element: str,
+        start: str,
+        end: str
+    ) -> Dict[str, pd.DataFrame]:
+        async with aiohttp.ClientSession(auth=type(self).__frost_auth) as s:
+            sources_response = await self.fetch_sources(
+                s,
+                element,
+                incident.coords_latlng[0],
+                incident.coords_latlng[1],
+                start,
+                end
+            )
+
+            source_distances = {}
+            sources_df = pd.DataFrame(columns=type(self).sources_headers)
+            for source in sources_response:
+                source_distances[source['id']] = source['distance']
+                sources_df = sources_df.append(
+                    self.__create_source_row(source),
+                    ignore_index=True
+                )
+
+            # Fetch for all sources
+            observations_dfs = await gather_with_concurrency(5, *(
+                self.fetch_observations(
+                    s,
+                    incident,
+                    source,
+                    start,
+                    end,
+                    element,
+                    source_distances[source]
+                ) for source in source_distances.keys()
+            ))
+
+            observations_df = pd.DataFrame(
+                columns=type(self).observations_headers
+            )
+            for obs_df in observations_dfs:
+                observations_df = observations_df.append(
+                    obs_df,
+                    ignore_index=True
+                )
+
+            return {
+                'sources': sources_df,
+                'observations': observations_df
+            }
+
+    async def fetch_sources(
+        self,
+        s: aiohttp.ClientSession,
+        element: str,
+        latitude: float,
+        longitude: float,
         start: str,
         end: str
     ) -> Dict[str, Any]:
-        sources_response = s.get(type(self).__sources_uri.format(
-            el,
-            long,
-            lat,
+        url = type(self).__sources_uri.format(
+            element,
+            longitude,
+            latitude,
             type(self).nearestmaxcount,
             start,
             end
-        )).json()['data']
+        )
 
-        return sources_response
+        async with aiohttp.ClientSession(auth=type(self).__frost_auth) as s:
+            # TODO: Clean up this retry hack
+            for i in range(5):
+                async with s.get(url) as response:
+                    try:
+                        result = (await response.json(content_type=None))
+                        return result.get('data')
+                    except Exception as e:
+                        print(f'Exception raised for url {url}')
+                        print(f'Response was:\n{await response.text()}')
+                        if i == 4:
+                            raise e
+
+    async def fetch_observations(
+        self,
+        s: aiohttp.ClientSession,
+        incident: AvalancheIncident,
+        source: str,
+        start: str,
+        end: str,
+        element: str,
+        distance: float
+    ) -> pd.DataFrame:
+        url = type(self).__observations_uri.format(source, start, end, element)
+
+        async with aiohttp.ClientSession(auth=type(self).__frost_auth) as s:
+            # TODO: Clean up this retry hack
+            for i in range(5):
+                async with s.get(url) as response:
+                    try:
+                        obs = (await response.json(content_type=None)).get('data')
+
+                        if obs is None:
+                            return None
+
+                        return self.__create_compound_obs_df(
+                            obs,
+                            source,
+                            incident.id,
+                            distance
+                        )
+                    except Exception as e:
+                        print(f'Exception raised for url {url}')
+                        print(f'Response was:\n{await response.text()}')
+                        if i == 4:
+                            raise e
 
     def __create_source_row(self, src: Dict[str, Any]) -> pd.DataFrame:
         source_row = pd.DataFrame([[
@@ -227,23 +307,6 @@ class FrostFetcher(fetcher.Fetcher):
         ]], columns=type(self).sources_headers)
 
         return source_row
-
-    def __fetch_observations(
-        self,
-        s: requests.Session,
-        src: str,
-        start: str,
-        end: str,
-        el: str
-    ) -> Dict[str, Any]:
-        obs_response = s.get(type(self).__observations_uri.format(
-            src,
-            start,
-            end,
-            el
-        )).json().get('data')
-
-        return obs_response
 
     def __create_observation_row(
         self,

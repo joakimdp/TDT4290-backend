@@ -1,5 +1,7 @@
 from typing import Dict
-from sqlalchemy import Column, Integer, DateTime, Float, String
+from sqlalchemy.schema import ForeignKey, Column
+from sqlalchemy.types import Integer, DateTime, Float, String, Text
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.engine.base import Engine
 import apis.initializer as initializer
@@ -8,9 +10,9 @@ import apis.initializer as initializer
 Base = declarative_base()
 
 
-class FrostSources(Base):
+class FrostSource(Base):
     __tablename__ = 'frost_sources'
-    id = Column(String(20))
+    id = Column(String(20), primary_key=True, nullable=False)
     type = Column(String(50))
     name = Column(String(255))
     short_name = Column(String(255))
@@ -32,13 +34,32 @@ class FrostSources(Base):
     ship_codes = Column(String(255))
     wigos_id = Column(String(50))
 
+    # TODO: Add relationship
+    # observations = relationship(
+    #     'FrostObservation',
+    #     order_by="FrostObservation.time",
+    #     back_populates='source'
+    # )
 
-class FrostObservations(Base):
+
+class FrostObservation(Base):
     __tablename__ = 'frost_observations'
-    source = Column(String(20))
-    element = Column(String(50))
-    time = Column(DateTime())
-    reg_id = Column(Integer())
+    source_id = Column(
+        String(20),
+        # TODO: Add FK constraint
+        # ForeignKey('frost_sources.id'),
+        primary_key=True,
+        nullable=False
+    )
+    element = Column(String(50), primary_key=True, nullable=False)
+    time = Column(DateTime(), primary_key=True, nullable=False)
+    reg_id = Column(
+        Integer(),
+        # TODO: Add FK constraint
+        # ForeignKey('regobs_data.reg_id'),
+        primary_key=True,
+        nullable=False
+    )
     distance = Column(Float())
     value = Column(String(20))
     orig_value = Column(String(20))
@@ -53,11 +74,15 @@ class FrostObservations(Base):
     control_info = Column(String(50))
     data_version = Column(String(20))
 
+    # TODO: Add relationships
+    # source = relationship('FrostSource', back_populates='observations')
+    # reg = relationship('RegobsData', back_populates='frost_observations')
+
 
 class FrostInitializer(initializer.Initializer):
     def __init__(self, engine: Engine):
         self.engine = engine
 
     def initialize_tables(self):
-        FrostSources.metadata.create_all(self.engine)
-        FrostObservations.metadata.create_all(self.engine)
+        FrostSource.metadata.create_all(self.engine)
+        FrostObservation.metadata.create_all(self.engine)

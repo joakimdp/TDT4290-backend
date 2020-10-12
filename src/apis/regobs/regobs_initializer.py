@@ -4,6 +4,7 @@ import pyodbc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.types import Date, Float, Integer, String
+from sqlalchemy.orm import relationship
 from sqlalchemy.engine.base import Engine
 
 Base = declarative_base()
@@ -59,6 +60,12 @@ class RegobsData(Base):
     utm_east_prioritized = Column(Integer)
     utm_north_prioritized = Column(Integer)
     forecast_region = Column(Integer)
+
+    # frost_observations = relationship(
+    #     'FrostObservation',
+    #     order_by='FrostObservation.time',
+    #     back_populates='reg'
+    # )
 
 
 class RegobsInitializer(initializer.Initializer):
