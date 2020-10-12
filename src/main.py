@@ -1,8 +1,10 @@
 from apis.regobs.regobs import Regobs
 from apis.regobs.regobs_initializer import RegobsInitializer
 from apis.xgeo.xgeo_initializer import XgeoInitializer
+from apis.skredvarsel.skredvarsel_initializer import SkredvarselInitializer
 from apis.xgeo.xgeo import Xgeo
 from db_inserter import DbInserter
+from apis.skredvarsel.skredvarsel import Skredvarsel
 from sqlalchemy.engine import create_engine
 from sqlalchemy.engine.base import Engine
 from decouple import config
@@ -58,7 +60,7 @@ def main():
     # Get data for rest of APIs
     avalanche_incident_list = create_avalanche_incident_list(
         processed_regobs_data)
-    api_list = []
+    api_list = [Skredvarsel()]
     api_table_dict = get_table_dict_for_apis_in_list(
         api_list, avalanche_incident_list)
 
@@ -67,7 +69,7 @@ def main():
     db_inserter = DbInserter(engine)
 
     print("Initializing tables")
-    initializer_class_list = [RegobsInitializer, XgeoInitializer]
+    initializer_class_list = [RegobsInitializer, XgeoInitializer, SkredvarselInitializer]
     initialize_tables(initializer_class_list, engine)
 
     print("Inserting data into database")

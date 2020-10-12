@@ -3,6 +3,7 @@ from datetime import date
 from src.apis.skredvarsel.skredvarsel_fetcher import SkredvarselFetcher
 from util.avalanche_incident import AvalancheIncident
 import json
+import requests
 
 class TestSkredvarselFetcher(unittest.TestCase):
     
@@ -15,6 +16,9 @@ class TestSkredvarselFetcher(unittest.TestCase):
         self.assertEqual(api_url, expected_api_url)
 
     def test_fetch_data_for_skredvarsel(self):
+        s = requests.Session()
+        #retries = Retry(total=5, backoff_factor=1, status_forcelist=[502,503,504])
+        #s.mount('https://', HTTPAdapter(max_retries=retries))
         avalanche_incident = AvalancheIncident(
             id=1,
             time=date.fromisoformat("2019-02-20"),
@@ -22,7 +26,7 @@ class TestSkredvarselFetcher(unittest.TestCase):
             coords_latlng=(61.044338, 9.062769)
         )
 
-        response = SkredvarselFetcher.fetch_data_from_skredvarsel(avalanche_incident)
+        response = SkredvarselFetcher.fetch_data_from_skredvarsel(avalanche_incident, s)
         self.assertEqual(response[0]["ValidFrom"],"2019-02-20T00:00:00")
         
 
@@ -43,8 +47,10 @@ class TestSkredvarselFetcher(unittest.TestCase):
         ))
 
         raw_data = SkredvarselFetcher().fetch(avalanche_incident_list)
-        self.assertEqual(raw_data[1]["ValidFrom"],"2019-02-20T00:00:00")
-        self.assertEqual(raw_data[2]["ValidFrom"],"2019-02-25T00:00:00")
-        self.assertTrue(raw_data[1]["DangerLevel"])
+        self.assertEqual(raw_data[0]["id"], 1)
+        self.assertEqual(raw_data[1]["id"], 2)
+        self.assertTrue(raw_data[0]["DangerLevel"])
+        
+        
 
     
