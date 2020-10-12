@@ -220,18 +220,17 @@ class FrostFetcher(fetcher.Fetcher):
             end
         )
 
-        async with aiohttp.ClientSession(auth=type(self).__frost_auth) as s:
-            # TODO: Clean up this retry hack
-            for i in range(5):
-                async with s.get(url) as response:
-                    try:
-                        result = (await response.json(content_type=None))
-                        return result.get('data')
-                    except Exception as e:
-                        print(f'Exception raised for url {url}')
-                        print(f'Response was:\n{await response.text()}')
-                        if i == 4:
-                            raise e
+        # TODO: Clean up this retry hack
+        for i in range(5):
+            async with s.get(url) as response:
+                try:
+                    result = (await response.json(content_type=None))
+                    return result.get('data')
+                except Exception as e:
+                    print(f'Exception raised for url {url}')
+                    print(f'Response was:\n{await response.text()}')
+                    if i == 4:
+                        raise e
 
     async def fetch_observations(
         self,
@@ -245,27 +244,26 @@ class FrostFetcher(fetcher.Fetcher):
     ) -> pd.DataFrame:
         url = type(self).__observations_uri.format(source, start, end, element)
 
-        async with aiohttp.ClientSession(auth=type(self).__frost_auth) as s:
-            # TODO: Clean up this retry hack
-            for i in range(5):
-                async with s.get(url) as response:
-                    try:
-                        obs = (await response.json(content_type=None)).get('data')
+        # TODO: Clean up this retry hack
+        for i in range(5):
+            async with s.get(url) as response:
+                try:
+                    obs = (await response.json(content_type=None)).get('data')
 
-                        if obs is None:
-                            return None
+                    if obs is None:
+                        return None
 
-                        return self.__create_compound_obs_df(
-                            obs,
-                            source,
-                            incident.id,
-                            distance
-                        )
-                    except Exception as e:
-                        print(f'Exception raised for url {url}')
-                        print(f'Response was:\n{await response.text()}')
-                        if i == 4:
-                            raise e
+                    return self.__create_compound_obs_df(
+                        obs,
+                        source,
+                        incident.id,
+                        distance
+                    )
+                except Exception as e:
+                    print(f'Exception raised for url {url}')
+                    print(f'Response was:\n{await response.text()}')
+                    if i == 4:
+                        raise e
 
     def __create_source_row(self, src: Dict[str, Any]) -> pd.DataFrame:
         source_row = pd.DataFrame([[
