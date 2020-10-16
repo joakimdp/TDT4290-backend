@@ -1,14 +1,23 @@
-from apis.regobs.regobs import Regobs
-from apis.regobs.regobs_initializer import RegobsInitializer
-from apis.xgeo.xgeo_initializer import XgeoInitializer
-from apis.skredvarsel.skredvarsel_initializer import SkredvarselInitializer
-from apis.xgeo.xgeo import Xgeo
-from db_inserter import DbInserter
-from apis.skredvarsel.skredvarsel import Skredvarsel
+#!/usr/bin/env python3
+
+import time
 from sqlalchemy.engine import create_engine
 from sqlalchemy.engine.base import Engine
 from decouple import config
+from db_inserter import DbInserter
 from util.avalanche_incident import create_avalanche_incident_list
+# RegObs
+from apis.regobs.regobs import Regobs
+from apis.regobs.regobs_initializer import RegobsInitializer
+# xGeo
+from apis.xgeo.xgeo import Xgeo
+from apis.xgeo.xgeo_initializer import XgeoInitializer
+# Frost
+from apis.frost.frost import Frost
+from apis.frost.frost_initializer import FrostInitializer
+# Skredvarsel
+from apis.skredvarsel.skredvarsel import Skredvarsel
+from apis.skredvarsel.skredvarsel_initializer import SkredvarselInitializer
 
 
 def create_db_connection() -> Engine:
@@ -18,8 +27,10 @@ def create_db_connection() -> Engine:
     password = config('PASSWORD')
     driver = 'ODBC Driver 17 for SQL Server'
 
-    connection_string = 'mssql+pyodbc://{username}:{password}@{server}/{database}?driver={driver}?Trusted_Connection=yes'.format(
-        username=username, password=password, server=server, database=database, driver=driver)
+    connection_string = (
+        f'mssql+pyodbc://{username}:{password}@{server}/{database}'
+        f'?driver={driver}?Trusted_Connection=yes'
+    )
     engine = create_engine(connection_string, connect_args={'timeout': 4000})
 
     return engine
@@ -29,6 +40,10 @@ def get_table_dict_for_apis_in_list(api_list, avalanche_incident_list):
     table_dict = {}
 
     for api in api_list:
+        print(
+            f'{time.ctime(time.time())}: '
+            f'Fetching for {api.__class__.__name__}...'
+        )
         api_table_dict = api.get_data(avalanche_incident_list)
         table_dict.update(api_table_dict)
 
@@ -37,9 +52,15 @@ def get_table_dict_for_apis_in_list(api_list, avalanche_incident_list):
 
 def insert_data_for_table_dict(table_dict, db_inserter):
     for table_name, rows in table_dict.items():
-        print('Inserting data into {}...'.format(table_name))
+        print(
+            f'{time.ctime(time.time())}: '
+            f'Inserting data into {table_name}...'
+        )
         db_inserter.insert(table_name, rows, 'replace')
-        print('{} successfully imported into database table'.format(table_name))
+        print(
+            f'{time.ctime(time.time())}: '
+            f'successfully imported into database table {table_name}'
+        )
 
 
 def insert_regobs_data_to_database(regobs_data, db_inserter):
@@ -60,7 +81,12 @@ def main():
     # Get data for rest of APIs
     avalanche_incident_list = create_avalanche_incident_list(
         processed_regobs_data)
-    api_list = [Skredvarsel()]
+    api_list = [
+        Xgeo(),
+        Frost(),
+        Skredvarsel()
+    ]
+    print('Fetching data from APIs')
     api_table_dict = get_table_dict_for_apis_in_list(
         api_list, avalanche_incident_list)
 
@@ -68,16 +94,21 @@ def main():
     engine = create_db_connection()
     db_inserter = DbInserter(engine)
 
-    print("Initializing tables")
-    initializer_class_list = [RegobsInitializer, XgeoInitializer, SkredvarselInitializer]
+    print('Initializing tables')
+    initializer_class_list = [
+        RegobsInitializer,
+        XgeoInitializer,
+        FrostInitializer,
+        SkredvarselInitializer
+    ]
     initialize_tables(initializer_class_list, engine)
 
-    print("Inserting data into database")
+    print('Inserting data into database')
     insert_regobs_data_to_database(processed_regobs_data, db_inserter)
     insert_data_for_table_dict(api_table_dict, db_inserter)
 
-    print("Done")
+    print('Done')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
