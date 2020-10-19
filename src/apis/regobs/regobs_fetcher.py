@@ -21,6 +21,7 @@ class RegobsFetcher(fetcher.Fetcher):
 
         self.regobs_df = pd.merge(avalanche_obs, incident, on=[
                                   'RegID'], how='outer')
+
         # Combine identical columns
         self.__combine_columns(
             'Registration.__deferred.uri', 'RegistrationUrl')
@@ -35,6 +36,7 @@ class RegobsFetcher(fetcher.Fetcher):
         self.__get_additional_data()
 
         print('All data fetched from RegObs.')
+
         return self.regobs_df
 
     def __fetch_from_api(self, url: str) -> pd.DataFrame:

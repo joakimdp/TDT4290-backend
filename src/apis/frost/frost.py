@@ -10,12 +10,7 @@ from util.avalanche_incident import AvalancheIncident
 class Frost(api.Api):
     def get_data(self, incidents: List[AvalancheIncident]) -> Dict[str, Base]:
         temp = FrostProcessor().process(FrostFetcher().fetch(incidents))
-        temp['frost_sources'].to_csv('frost_sources.csv', index=False)
-        temp['frost_observations'].to_csv(
-            'frost_observations.csv',
-            index=False
-        )
         return {
-            'frost_sources': pd.read_csv('frost_sources.csv'),
-            'frost_observations': pd.read_csv('frost_observations.csv')
+            'frost_sources': temp['frost_sources'],
+            'frost_observations': temp['frost_observations']
         }

@@ -55,9 +55,9 @@ class XgeoFetcher(fetcher.Fetcher):
         in DATA_CODES
         """
 
-        print(str(self.incident_count)
+        """ print(str(self.incident_count)
               + ": Fetching data for id="
-              + str(incident.id))
+              + str(incident.id)) """
         if (self.incident_count % 300 == 0):
             print("sleeping for 1 minute")
             await asyncio.sleep(61)

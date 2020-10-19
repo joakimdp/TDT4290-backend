@@ -7,6 +7,7 @@ class AvalancheIncident():
     Primarily to be used together with APIs for getting additional
     information about an avalanche.
     """
+
     def __init__(self, id, time, coords_utm, coords_latlng):
         self.id = id
         self.time = time
@@ -27,9 +28,9 @@ def create_avalanche_incident_list(df: pd.DataFrame):
 
     for index, row in df.iterrows():
         aval_objects.append(AvalancheIncident(
-            row["reg_id"],
-            row["time"],
-            (row["utm_east_reg"], row["utm_north_reg"]),
-            (row["lat"], row["lng"])))
+            row['reg_id'],
+            row['time'],
+            (row['utm_east_reg'], row['utm_north_reg']),
+            (row['lat'], row['lng'])))
 
     return aval_objects

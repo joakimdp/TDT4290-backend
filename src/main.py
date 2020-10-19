@@ -1,113 +1,111 @@
-#!/usr/bin/env python3
 
-import time
-from sqlalchemy.engine import create_engine
-from sqlalchemy.engine.base import Engine
-from decouple import config
-from db_inserter import DbInserter
-from util.avalanche_incident import create_avalanche_incident_list
-# RegObs
 from apis.regobs.regobs import Regobs
-from apis.regobs.regobs_initializer import RegobsInitializer
-# xGeo
+from apis.regobs.regobs_initializer import RegobsData, RegobsInitializer
+from apis.xgeo.xgeo_initializer import XgeoData, XgeoInitializer
 from apis.xgeo.xgeo import Xgeo
-from apis.xgeo.xgeo_initializer import XgeoInitializer
-# Frost
 from apis.frost.frost import Frost
-from apis.frost.frost_initializer import FrostInitializer
-# Skredvarsel
+from db_manager import DbManager
+from decouple import config
+from util.avalanche_incident import create_avalanche_incident_list
+from util.dataframe_difference import dataframe_difference
+from util.main_utils import *
+from util.csv import to_csv, read_csv
 from apis.skredvarsel.skredvarsel import Skredvarsel
-from apis.skredvarsel.skredvarsel_initializer import SkredvarselInitializer
-
-
-def create_db_connection() -> Engine:
-    server = 'avalanche-server.database.windows.net,1433'
-    database = 'avalanche-db'
-    username = config('DBUSERNAME')
-    password = config('PASSWORD')
-    driver = 'ODBC Driver 17 for SQL Server'
-
-    connection_string = (
-        f'mssql+pyodbc://{username}:{password}@{server}/{database}'
-        f'?driver={driver}?Trusted_Connection=yes'
-    )
-    engine = create_engine(connection_string, connect_args={'timeout': 4000})
-
-    return engine
-
-
-def get_table_dict_for_apis_in_list(api_list, avalanche_incident_list):
-    table_dict = {}
-
-    for api in api_list:
-        print(
-            f'{time.ctime(time.time())}: '
-            f'Fetching for {api.__class__.__name__}...'
-        )
-        api_table_dict = api.get_data(avalanche_incident_list)
-        table_dict.update(api_table_dict)
-
-    return table_dict
-
-
-def insert_data_for_table_dict(table_dict, db_inserter):
-    for table_name, rows in table_dict.items():
-        print(
-            f'{time.ctime(time.time())}: '
-            f'Inserting data into {table_name}...'
-        )
-        db_inserter.insert(table_name, rows, 'replace')
-        print(
-            f'{time.ctime(time.time())}: '
-            f'successfully imported into database table {table_name}'
-        )
-
-
-def insert_regobs_data_to_database(regobs_data, db_inserter):
-    print('Inserting RegObs data into database table..')
-    db_inserter.insert('regobs_data', regobs_data, 'replace')
-    print('Data successfully imported to database table')
-
-
-def initialize_tables(initializer_list, engine):
-    for initializer_class in initializer_list:
-        initializer_class(engine).initialize_tables()
+from apis.skredvarsel.skredvarsel_initializer import SkredvarselData, SkredvarselInitializer
+from apis.frost.frost_initializer import FrostInitializer, FrostObservation
 
 
 def main():
-    # Get data for regobs
-    processed_regobs_data = Regobs().get_data()
+    # Which APIs to append data to
+    api_list = [Skredvarsel(), Xgeo(), Frost()]
+    # Which APIs to remove deleted data from
+    delete_removed_api_list = [RegobsData,
+                               SkredvarselData, XgeoData, FrostObservation]
+    # Which tables to initialize in database (on force update)
+    initializer_class_list = [
+        RegobsInitializer, SkredvarselInitializer, XgeoInitializer, FrostInitializer]
 
-    # Get data for rest of APIs
-    avalanche_incident_list = create_avalanche_incident_list(
-        processed_regobs_data)
-    api_list = [
-        Xgeo(),
-        Frost(),
-        Skredvarsel()
-    ]
-    print('Fetching data from APIs')
+    # Handle command line arguments
+    force_update = parse_command_line_arguments()
+
+    # Create engine and db_inserter
+    engine = create_db_connection()
+    db_manager = DbManager(engine)
+
+    print('Fetching regobs data..')
+    fetch_regobs = False
+    # Fetch regobs data from api
+    if fetch_regobs:
+        api_data = Regobs().get_data()
+        to_csv(api_data, 'csv_files/regobs.csv')
+
+    # Load regobs data from csv file (can be useful for debugging or testing incremental update)
+    else:
+        api_data = read_csv('csv_files/regobs.csv')
+
+    # Incremental update. Only update added, updated or deleted rows in database tables.
+    if not force_update:
+        # Specify that the dataframe should be appended to the existing data in the database tables
+        if_table_exists_in_database = 'append'
+
+        # Query current data in database
+        print('Querying regobs table from database..')
+        db_data = db_manager.query_all_data_from_table('regobs_data', 'reg_id')
+
+        # Compare current database data with new api data
+        # Rows to delete from all tables
+        print('Comparing dataframes..')
+        deleted_rows = dataframe_difference(
+            db_data, api_data, ['reg_id', 'dt_change_time'])
+
+        # Rows to add to all tables
+        new_rows = dataframe_difference(
+            api_data, db_data, ['reg_id', 'dt_change_time'])
+
+        deleted_reg_ids = list(deleted_rows['reg_id'])
+
+        deleted_reg_ids = [int(x) for x in deleted_reg_ids]
+        print('reg_ids for deleted rows:', deleted_reg_ids)
+
+        if deleted_reg_ids:
+            # Delete removed rows from api's
+            for data_class in delete_removed_api_list:
+                print('Deleting removed rows for:', str(data_class))
+                db_manager.delete_rows_with_reg_id(deleted_reg_ids, data_class)
+        else:
+            print('No rows to delete from api tables')
+
+        if not new_rows.empty:
+            print('Number of new regobs rows: ', len(new_rows))
+            avalanche_incident_list = create_avalanche_incident_list(new_rows)
+
+            # Append new rows to regobs table
+            insert_regobs_data_to_database(new_rows, db_manager, 'append')
+
+        else:
+            avalanche_incident_list = []
+
+    # Initialize database and load all data
+    elif force_update:
+        if_table_exists_in_database = 'replace'
+
+        avalanche_incident_list = create_avalanche_incident_list(
+            api_data)
+
+        print('Initializing tables')
+        initialize_tables(initializer_class_list, engine)
+
+        insert_regobs_data_to_database(api_data, db_manager, 'replace')
+
+    if not avalanche_incident_list:
+        print('No data to add to api tables')
+        return
+
     api_table_dict = get_table_dict_for_apis_in_list(
         api_list, avalanche_incident_list)
 
-    # Create engine
-    engine = create_db_connection()
-    db_inserter = DbInserter(engine)
-
-    print('Initializing tables')
-    initializer_class_list = [
-        RegobsInitializer,
-        XgeoInitializer,
-        FrostInitializer,
-        SkredvarselInitializer
-    ]
-    initialize_tables(initializer_class_list, engine)
-
-    print('Inserting data into database')
-    insert_regobs_data_to_database(processed_regobs_data, db_inserter)
-    insert_data_for_table_dict(api_table_dict, db_inserter)
-
-    print('Done')
+    insert_data_for_table_dict(
+        api_table_dict, db_manager, if_table_exists_in_database)
 
 
 if __name__ == '__main__':

@@ -137,4 +137,6 @@ class RegobsProcessor(processor.Processor):
         df["lng"] = lng
         df["time"] = time
 
+        #df.set_index('reg_id', inplace=True)
+
         return df
