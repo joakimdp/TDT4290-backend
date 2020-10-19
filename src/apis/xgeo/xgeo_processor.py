@@ -3,6 +3,7 @@ import pandas as pd
 
 
 class XgeoProcessor(processor.Processor):
+    @staticmethod
     def convert_dataframe_to_correct_format(id, dataframe):
         number_of_rows = len(dataframe.index)
         ids = [id for x in range(number_of_rows)]
@@ -25,7 +26,9 @@ class XgeoProcessor(processor.Processor):
         """
         output_rows = pd.DataFrame()
         for key, value in dataframe_dict.items():
-            formatted_dataframe = XgeoProcessor.convert_dataframe_to_correct_format(key, value)
+            formatted_dataframe = XgeoProcessor.convert_dataframe_to_correct_format(
+                key, value)
             output_rows = output_rows.append(formatted_dataframe)
 
+        output_rows.rename(columns={'id': 'reg_id'}, inplace=True)
         return output_rows

@@ -5,8 +5,9 @@ from sqlalchemy.engine.base import Engine
 
 Base = declarative_base()
 
+
 class SkredvarselData(Base):
-    __tablename__= 'skredvarsel_data'
+    __tablename__ = 'skredvarsel_data'
     reg_id = Column(Integer, primary_key=True)
     previous_warning_reg_id = Column(Integer)
     danger_level_name = Column(String)
@@ -20,6 +21,7 @@ class SkredvarselData(Base):
     current_weak_layers = Column(String)
     latest_avalanche_activity = Column(String)
     registartion_id = Column(Integer)
+    region_id = Column(Integer)
     region_name = Column(String)
     region_type_id = Column(Integer)
     region_type_name = Column(String)
@@ -59,7 +61,3 @@ class SkredvarselInitializer(initializer.Initializer):
 
     def initialize_tables(self):
         SkredvarselData.metadata.create_all(self.engine)
-        
-
-
-

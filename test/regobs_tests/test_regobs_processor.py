@@ -17,8 +17,8 @@ class TestRegobsProcessor(unittest.TestCase):
 
     def test_process(self):
         example_df = pd.DataFrame(
-            [["2134", 340000, 5710000, None, "/Date(1359817740000)/", "/Date(1355817740000)/", None, "/Date(1353817740000)/"],
-             ["1234", 340000, 5710000, None, None, np.nan, None, "/Date(1359817740000)/"]],
+            [["2134", 340000, 5710000, None, "/Date(1359817740000)/", "/Date(1355817740000)/", None, "/Date(1353817740000)/", 340000, 5710000],
+             ["1234", 340000, 5710000, None, None, np.nan, None, "/Date(1359817740000)/", 340000, 5710000]],
             columns=[
                 "reg_id",
                 "utm_east_reg",
@@ -27,7 +27,9 @@ class TestRegobsProcessor(unittest.TestCase):
                 "dt_avalanche_time",
                 "dt_end_time",
                 "dt_obs_time",
-                "dt_reg_time"]
+                "dt_reg_time",
+                'utm_east_start',
+                'utm_north_start']
         )
 
         processor = RegobsProcessor()
@@ -41,8 +43,8 @@ class TestRegobsProcessor(unittest.TestCase):
 
     def test_deleted_row(self):
         example_df = pd.DataFrame(
-            [["2134", 340000, 5710000, "/Date(1359817740000)/", "/Date(1359817740000)/", "/Date(1355817740000)/", None, "/Date(1353817740000)/"],
-             ["1234", 340000, 5710000, None, None, np.nan, None, "/Date(1359817740000)/"]],
+            [["2134", 340000, 5710000, None, "/Date(1359817740000)/", "/Date(1355817740000)/", None, "/Date(1353817740000)/", 340000, 5710000],
+             ["1234", 340000, 5710000, None, None, np.nan, None, "/Date(1359817740000)/", 340000, 5710000]],
             columns=[
                 "reg_id",
                 "utm_east_reg",
@@ -51,14 +53,16 @@ class TestRegobsProcessor(unittest.TestCase):
                 "dt_avalanche_time",
                 "dt_end_time",
                 "dt_obs_time",
-                "dt_reg_time"]
+                "dt_reg_time",
+                'utm_east_start',
+                'utm_north_start']
         )
 
         processor = RegobsProcessor()
         processed_df = processor.process(example_df)
 
-        self.assertEqual(processed_df.size, 11)
-        self.assertEqual(processed_df.iloc[0]["reg_id"], "1234")
+        self.assertEqual(processed_df.size, 30)
+        self.assertEqual(processed_df.iloc[0]["reg_id"], "2134")
 
     def test_convert_posix_to_datetime(self):
         example_time_string = "/Date(1359817740000)/"

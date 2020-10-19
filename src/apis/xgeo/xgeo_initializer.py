@@ -8,7 +8,7 @@ Base = declarative_base()
 
 class XgeoData(Base):
     __tablename__ = 'xgeo_data'
-    id = Column(Integer, primary_key=True)
+    reg_id = Column(Integer, primary_key=True)
     date = Column(Date, primary_key=True)
     snow_depth_3_days = Column(Float)
     snow_depth = Column(Float)

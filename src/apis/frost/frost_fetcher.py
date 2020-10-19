@@ -130,7 +130,7 @@ class FrostFetcher(fetcher.Fetcher):
     ) -> (
         List[Dict[str, pd.DataFrame]]
     ):
-        print(f'Fetching for incident {incident.id}')
+        #print(f'Fetching for incident {incident.id}')
         interval_start = (
             incident.time - dt.timedelta(days=type(self).days_before)
         ).strftime(type(self).__time_format)

@@ -24,6 +24,6 @@ class TestXgeoApi(unittest.TestCase):
         dataframe_dict = Xgeo().get_data(avalanche_incident_list)
         database_rows = dataframe_dict["xgeo_data"]
 
-        self.assertIn("id", database_rows.columns)
+        self.assertIn("reg_id", database_rows.columns)
         self.assertIn("date", database_rows.columns)
         self.assertTrue(len(database_rows.columns) > 2)
