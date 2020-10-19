@@ -1,12 +1,13 @@
-import apis.api as api
-from apis.skredvarsel.skredvarsel_fetcher import SkredvarselFetcher
-from apis.skredvarsel.skredvarsel_processor import SkredvarselProcessor
-from apis.skredvarsel.skredvarsel_initializer import SkredvarselInitializer
-from apis.skredvarsel.skredvarsel_initializer import SkredvarselData
-from apis.processor import Processor
-from apis.fetcher import Fetcher
-import pandas as pd
 from typing import Dict
+
+import apis.api as api
+import pandas as pd
+from apis.fetcher import Fetcher
+from apis.processor import Processor
+from apis.skredvarsel.skredvarsel_fetcher import SkredvarselFetcher
+from apis.skredvarsel.skredvarsel_initializer import (SkredvarselData,
+                                                      SkredvarselInitializer)
+from apis.skredvarsel.skredvarsel_processor import SkredvarselProcessor
 
 
 class Skredvarsel():

@@ -1,11 +1,13 @@
-from typing import List, Tuple, Dict, Any
-from datetime import timedelta
 import asyncio
+import logging
+from datetime import timedelta
+from typing import Any, Dict, List, Tuple
+
 import aiohttp
 import pandas as pd
 import apis.fetcher as fetcher
-from util.avalanche_incident import AvalancheIncident
 from util.async_wrappers import gather_with_concurrency
+from util.avalanche_incident import AvalancheIncident
 
 
 class XgeoFetcher(fetcher.Fetcher):
@@ -55,11 +57,7 @@ class XgeoFetcher(fetcher.Fetcher):
         in DATA_CODES
         """
 
-        """ print(str(self.incident_count)
-              + ": Fetching data for id="
-              + str(incident.id)) """
         if (self.incident_count % 300 == 0):
-            print("sleeping for 1 minute")
             await asyncio.sleep(61)
         self.incident_count += 1
 
@@ -102,10 +100,9 @@ class XgeoFetcher(fetcher.Fetcher):
                 async with s.get(url) as response:
                     return await response.json()
             except Exception as e:
-                print(f'Exception raised for url {url}')
-                # print(f'Response was:\n{await response.text()}')
+                logging.critical(f'Exception raised for url {url}')
                 if i == 4:
-                    print('Raising...')
+                    logging.critical(e)
                     raise e
 
     @staticmethod

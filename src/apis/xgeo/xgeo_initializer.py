@@ -1,7 +1,7 @@
 import apis.initializer as initializer
-from sqlalchemy import Column, Integer, Date, Float
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Date, Float, Integer
 from sqlalchemy.engine.base import Engine
+from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 

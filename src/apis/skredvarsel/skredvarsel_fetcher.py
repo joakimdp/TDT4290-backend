@@ -1,11 +1,12 @@
-from apis.fetcher import Fetcher
 import datetime
+from typing import Dict, List
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 from urllib3.exceptions import MaxRetryError
+from apis.fetcher import Fetcher
 from util.avalanche_incident import AvalancheIncident
-from typing import List, Dict
 
 
 class SkredvarselFetcher(Fetcher):
@@ -29,7 +30,6 @@ class SkredvarselFetcher(Fetcher):
         lat = avalanche_incident.coords_latlng[0]
         lon = avalanche_incident.coords_latlng[1]
         if lat == None or lon == None or date == None:
-            print("Avalanche list attributes not valied")
             return None
         api_url = SkredvarselFetcher.create_url(lat, lon, date)
         # neste gang: lage if for i tilfelle date, lot, lon ikke er gyldige, eller null
@@ -40,7 +40,6 @@ class SkredvarselFetcher(Fetcher):
     def add_avalanche_id(response: object, avalanche_incident: AvalancheIncident) -> Dict[str, object]:
         data_dict = {}
         if response == None:
-            print("Response is Nonetype")
             return None
         data_dict.update(response[0])
         data_dict.update({"id": avalanche_incident.id})

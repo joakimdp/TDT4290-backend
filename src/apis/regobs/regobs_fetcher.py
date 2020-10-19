@@ -1,9 +1,11 @@
-import apis.fetcher as fetcher
-import requests
+import logging
+
 import pandas as pd
-from urllib3.exceptions import MaxRetryError
-from urllib3 import Retry
+import requests
 from requests.adapters import HTTPAdapter
+from urllib3 import Retry
+from urllib3.exceptions import MaxRetryError
+import apis.fetcher as fetcher
 
 
 class RegobsFetcher(fetcher.Fetcher):
@@ -13,10 +15,10 @@ class RegobsFetcher(fetcher.Fetcher):
 
     def fetch(self) -> pd.DataFrame:
         # Get data from AvalancheObs and Incident
-        print('Fetching AvalanceObs..')
+        logging.info('Fetching data from AvalancheObservations..')
         avalanche_obs = self.__fetch_from_api(
             RegobsFetcher.__avalanche_obs_url)
-        print('Fetching Incident..')
+        logging.info('Fetching data from Incident..')
         incident = self.__fetch_from_api(RegobsFetcher.__incident_url)
 
         self.regobs_df = pd.merge(avalanche_obs, incident, on=[
@@ -32,10 +34,8 @@ class RegobsFetcher(fetcher.Fetcher):
         self.__combine_columns('__metadata.type')
 
         # Get ObsLocation data
-        print('Fetching additional data..')
+        logging.info('Fetching additional data from RegObs..')
         self.__get_additional_data()
-
-        print('All data fetched from RegObs.')
 
         return self.regobs_df
 

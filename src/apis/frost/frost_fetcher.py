@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import datetime as dt
 from typing import List, Dict, Any
 import aiohttp
@@ -130,7 +131,6 @@ class FrostFetcher(fetcher.Fetcher):
     ) -> (
         List[Dict[str, pd.DataFrame]]
     ):
-        #print(f'Fetching for incident {incident.id}')
         interval_start = (
             incident.time - dt.timedelta(days=type(self).days_before)
         ).strftime(type(self).__time_format)
@@ -226,9 +226,10 @@ class FrostFetcher(fetcher.Fetcher):
                     result = (await response.json(content_type=None))
                     return result.get('data')
                 except Exception as e:
-                    print(f'Exception raised for url {url}')
-                    print(f'Response was:\n{await response.text()}')
+                    logging.critical(f'Exception raised for url {url}')
+                    logging.critical(f'Response was:\n{await response.text()}')
                     if i == 4:
+                        logging.critical(e)
                         raise e
 
     async def fetch_observations(
@@ -259,9 +260,10 @@ class FrostFetcher(fetcher.Fetcher):
                         distance
                     )
                 except Exception as e:
-                    print(f'Exception raised for url {url}')
-                    print(f'Response was:\n{await response.text()}')
+                    logging.critical(f'Exception raised for url {url}')
+                    logging.critical(f'Response was:\n{await response.text()}')
                     if i == 4:
+                        logging.critical(e)
                         raise e
 
     def __create_source_row(self, src: Dict[str, Any]) -> pd.DataFrame:
