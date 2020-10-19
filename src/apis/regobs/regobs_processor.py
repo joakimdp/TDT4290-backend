@@ -1,9 +1,10 @@
-import apis.processor as processor
-import pandas as pd
-import util.utm_converter as utm_converter
-from datetime import datetime
 import re
+from datetime import datetime
 from typing import List
+
+import pandas as pd
+import apis.processor as processor
+import util.utm_converter as utm_converter
 
 
 class RegobsProcessor(processor.Processor):
@@ -136,7 +137,5 @@ class RegobsProcessor(processor.Processor):
         df["lat"] = lat
         df["lng"] = lng
         df["time"] = time
-
-        #df.set_index('reg_id', inplace=True)
 
         return df

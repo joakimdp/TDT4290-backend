@@ -1,13 +1,14 @@
-import time
-import sys
 import getopt
+import logging
+import sys
+import time
 from typing import Dict
 
+import pandas as pd
+from db_manager import DbManager
 from decouple import config
 from sqlalchemy.engine import create_engine
 from sqlalchemy.engine.base import Engine
-import pandas as pd
-from db_manager import DbManager
 
 
 def create_db_connection() -> Engine:
@@ -30,10 +31,7 @@ def get_table_dict_for_apis_in_list(api_list, avalanche_incident_list) -> Dict[s
     table_dict = {}
 
     for api in api_list:
-        print(
-            f'{time.ctime(time.time())}: '
-            f'Fetching for {api.__class__.__name__}...'
-        )
+        logging.info('Fetching data for: {}'.format(api.__class__.__name__))
         api_table_dict = api.get_data(avalanche_incident_list)
         table_dict.update(api_table_dict)
 
@@ -42,13 +40,12 @@ def get_table_dict_for_apis_in_list(api_list, avalanche_incident_list) -> Dict[s
 
 def insert_data_for_table_dict(table_dict: Dict[str, pd.DataFrame], db_manager: DbManager, if_exists: str) -> None:
     for table_name, rows in table_dict.items():
-        print('Inserting data into {}...'.format(table_name))
+        logging.info('Inserting data into {}...'.format(table_name))
         db_manager.insert_dataframe(table_name, rows, if_exists)
-        print('{} successfully imported into database table'.format(table_name))
 
 
 def insert_regobs_data_to_database(regobs_data: pd.DataFrame, db_manager: DbManager, if_exists: str) -> None:
-    print('Inserting RegObs data into database table..')
+    logging.info('Inserting RegObs data into database table..')
     db_manager.insert_dataframe('regobs_data', regobs_data, if_exists)
 
 
@@ -82,6 +79,6 @@ def parse_command_line_arguments() -> bool:
 
     except getopt.error as err:
         # output error, and return with an error code
-        print(str(err))
+        logging.critical(err)
 
     return force_update

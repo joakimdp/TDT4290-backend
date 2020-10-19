@@ -1,9 +1,10 @@
+from typing import Dict
+
+import pandas as pd
 from apis.api import Api
 from apis.xgeo.xgeo_fetcher import XgeoFetcher
-from apis.xgeo.xgeo_processor import XgeoProcessor
 from apis.xgeo.xgeo_initializer import XgeoData
-from typing import Dict
-import pandas as pd
+from apis.xgeo.xgeo_processor import XgeoProcessor
 
 
 class Xgeo(Api):

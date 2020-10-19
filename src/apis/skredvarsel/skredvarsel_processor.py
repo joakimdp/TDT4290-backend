@@ -1,7 +1,8 @@
-import apis.processor as processor
-import pandas as pd
 import json
 from typing import List
+
+import apis.processor as processor
+import pandas as pd
 from util.avalanche_incident import AvalancheIncident
 
 
@@ -71,7 +72,5 @@ class SkredvarselProcessor(processor.Processor):
             'ExposedHeight2': 'exposed_heigth_2',
             'ExposedHeightFill': 'exposed_height_fill'
         }, inplace=True)
-
-        #df.set_index('reg_id', inplace=True)
 
         return df

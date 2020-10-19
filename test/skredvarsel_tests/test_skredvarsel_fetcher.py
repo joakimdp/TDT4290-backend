@@ -1,8 +1,8 @@
+import json
 import unittest
 from datetime import date
-import json
-import requests
 
+import requests
 from apis.skredvarsel.skredvarsel_fetcher import SkredvarselFetcher
 from util.avalanche_incident import AvalancheIncident
 

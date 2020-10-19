@@ -1,8 +1,9 @@
 import unittest
-from apis.regobs.regobs_processor import RegobsProcessor
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 import pandas.testing as pd_testing
+from apis.regobs.regobs_processor import RegobsProcessor
 
 
 class TestRegobsProcessor(unittest.TestCase):

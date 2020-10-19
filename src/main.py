@@ -1,18 +1,29 @@
+import logging
+from decouple import config
+from db_manager import DbManager
 
+# Regobs
 from apis.regobs.regobs import Regobs
 from apis.regobs.regobs_initializer import RegobsData, RegobsInitializer
+
+# Xgeo
 from apis.xgeo.xgeo_initializer import XgeoData, XgeoInitializer
 from apis.xgeo.xgeo import Xgeo
+
+# Frost
 from apis.frost.frost import Frost
-from db_manager import DbManager
-from decouple import config
+from apis.frost.frost_initializer import FrostInitializer, FrostObservation
+
+# Skredvarsel
+from apis.skredvarsel.skredvarsel import Skredvarsel
+from apis.skredvarsel.skredvarsel_initializer import SkredvarselData, SkredvarselInitializer
+
+# Utilities
 from util.avalanche_incident import create_avalanche_incident_list
 from util.dataframe_difference import dataframe_difference
 from util.main_utils import *
 from util.csv import to_csv, read_csv
-from apis.skredvarsel.skredvarsel import Skredvarsel
-from apis.skredvarsel.skredvarsel_initializer import SkredvarselData, SkredvarselInitializer
-from apis.frost.frost_initializer import FrostInitializer, FrostObservation
+from util.logging import setup_logging
 
 
 def main():
@@ -28,15 +39,28 @@ def main():
     # Handle command line arguments
     force_update = parse_command_line_arguments()
 
+    logging.info(
+        'Application started with force_update={}'.format(force_update))
+
     # Create engine and db_inserter
-    engine = create_db_connection()
+    try:
+        engine = create_db_connection()
+    except Exception as e:
+        logging.critical("Cannot connect to the database")
+        logging.critical(e)
+
     db_manager = DbManager(engine)
 
-    print('Fetching regobs data..')
+    logging.info('Fetching RegObs data..')
     fetch_regobs = False
     # Fetch regobs data from api
     if fetch_regobs:
-        api_data = Regobs().get_data()
+        try:
+            api_data = Regobs().get_data()
+        except Exception as e:
+            logging.critical("Cannot fetch RegObs data")
+            logging.critical(e)
+
         to_csv(api_data, 'csv_files/regobs.csv')
 
     # Load regobs data from csv file (can be useful for debugging or testing incremental update)
@@ -49,12 +73,18 @@ def main():
         if_table_exists_in_database = 'append'
 
         # Query current data in database
-        print('Querying regobs table from database..')
-        db_data = db_manager.query_all_data_from_table('regobs_data', 'reg_id')
+        logging.info('Querying regobs table from database..')
+        try:
+            db_data = db_manager.query_all_data_from_table(
+                'regobs_data', 'reg_id')
+        except Exception as e:
+            logging.critical("Cannot query RegObs data from database")
+            logging.critical(e)
 
         # Compare current database data with new api data
         # Rows to delete from all tables
-        print('Comparing dataframes..')
+        logging.info(
+            'Comparing dataframes to determine which rows are added or removed..')
         deleted_rows = dataframe_difference(
             db_data, api_data, ['reg_id', 'dt_change_time'])
 
@@ -65,22 +95,43 @@ def main():
         deleted_reg_ids = list(deleted_rows['reg_id'])
 
         deleted_reg_ids = [int(x) for x in deleted_reg_ids]
-        print('reg_ids for deleted rows:', deleted_reg_ids)
+        logging.info('Records with the following reg_ids will be deleted from the database: {}'.format(
+            deleted_reg_ids))
 
         if deleted_reg_ids:
             # Delete removed rows from api's
-            for data_class in delete_removed_api_list:
-                print('Deleting removed rows for:', str(data_class))
-                db_manager.delete_rows_with_reg_id(deleted_reg_ids, data_class)
+            try:
+                for data_class in delete_removed_api_list:
+                    logging.info(
+                        'Deleting removed records for: {}'.format(str(data_class)))
+                    db_manager.delete_rows_with_reg_id(
+                        deleted_reg_ids, data_class)
+            except Exception as e:
+                logging.critical(
+                    "Cannot delete removed records from database table")
+                logging.critical(e)
         else:
-            print('No rows to delete from api tables')
+            logging.info(
+                'There are no deleted records to remove from the database')
 
         if not new_rows.empty:
-            print('Number of new regobs rows: ', len(new_rows))
-            avalanche_incident_list = create_avalanche_incident_list(new_rows)
+            logging.info(
+                'Number of new records to add: {}'.format(len(new_rows)))
+
+            try:
+                avalanche_incident_list = create_avalanche_incident_list(
+                    new_rows)
+            except Exception as e:
+                logging.critical(
+                    "Cannot create avalanche_incident_list from regobs data")
+                logging.critical(e)
 
             # Append new rows to regobs table
-            insert_regobs_data_to_database(new_rows, db_manager, 'append')
+            try:
+                insert_regobs_data_to_database(new_rows, db_manager, 'append')
+            except Exception as e:
+                logging.critical("Cannot append RegObs data to database table")
+                logging.critical(e)
 
         else:
             avalanche_incident_list = []
@@ -89,24 +140,54 @@ def main():
     elif force_update:
         if_table_exists_in_database = 'replace'
 
-        avalanche_incident_list = create_avalanche_incident_list(
-            api_data)
+        try:
+            avalanche_incident_list = create_avalanche_incident_list(
+                api_data)
+        except Exception as e:
+            logging.critical(
+                "Cannot create avalanche_incident_list from regobs data")
+            logging.critical(e)
 
-        print('Initializing tables')
-        initialize_tables(initializer_class_list, engine)
+        logging.info('Initializing database tables..')
+        try:
+            initialize_tables(initializer_class_list, engine)
+        except Exception as e:
+            logging.critical(
+                "Cannot initialize tables in database")
+            logging.critical(e)
 
-        insert_regobs_data_to_database(api_data, db_manager, 'replace')
+        try:
+            insert_regobs_data_to_database(api_data, db_manager, 'replace')
+        except Exception as e:
+            logging.critical(
+                "Cannot add RegObs data to database table")
+            logging.critical(e)
 
     if not avalanche_incident_list:
-        print('No data to add to api tables')
+        logging.info('There is no new records to add to the database')
+        logging.info('The application terminated successfully')
         return
 
     api_table_dict = get_table_dict_for_apis_in_list(
         api_list, avalanche_incident_list)
 
-    insert_data_for_table_dict(
-        api_table_dict, db_manager, if_table_exists_in_database)
+    try:
+        insert_data_for_table_dict(
+            api_table_dict, db_manager, if_table_exists_in_database)
+    except Exception as e:
+        logging.critical(
+            "Cannot add API data to database table")
+        logging.critical(e)
+
+    logging.info('The application terminated successfully')
 
 
 if __name__ == '__main__':
-    main()
+    # Setup application logging
+    logging = setup_logging()
+
+    try:
+        main()
+    except Exception as e:
+        logging.critical(e)
+        raise e

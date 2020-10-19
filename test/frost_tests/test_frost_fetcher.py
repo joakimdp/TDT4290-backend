@@ -1,8 +1,10 @@
-import unittest
 import datetime as dt
+import logging
+import unittest
+
+import numpy as np
 import pandas as pd
 import pandas.testing as pd_testing
-import numpy as np
 from apis.frost.frost_fetcher import FrostFetcher
 from util.avalanche_incident import AvalancheIncident
 
@@ -10,7 +12,8 @@ from util.avalanche_incident import AvalancheIncident
 class TestFrostFetcher(unittest.TestCase):
     def assertDataFrameEqual(self, a, b, msg=None):
         try:
-            pd_testing.assert_frame_equal(a, b, check_column_type=False, check_index_type=False, check_dtype=False)
+            pd_testing.assert_frame_equal(
+                a, b, check_column_type=False, check_index_type=False, check_dtype=False)
         except AssertionError as e:
             raise self.failureException(str(e)) from e
 
@@ -108,7 +111,7 @@ class TestFrostFetcher(unittest.TestCase):
                 '0-578-0-30249'
             ]
         ], columns=FrostFetcher.sources_headers).reset_index(drop=True)
-        
+
         expected_observations = pd.DataFrame([
             [
                 'SN27630',
