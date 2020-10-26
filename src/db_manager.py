@@ -8,7 +8,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.session import sessionmaker
 
 from apis.frost.frost_initializer import FrostObservation, FrostSource
-from util.csv import to_csv
 from util.dataframe_difference import dataframe_difference
 
 
@@ -21,26 +20,27 @@ class DbManager():
         self.engine = engine
         self.Session = sessionmaker(bind=engine)
 
-    def insert_dataframe(self, table_name: str, data_frame: pd.DataFrame, if_exists: str) -> None:
+    def insert_dataframe(self, table_name: str, dataframe: pd.DataFrame, if_exists: str) -> None:
+        # Set correct index for dataframe
+        if table_name == 'frost_sources':
+            dataframe.set_index('id')
+        else:
+            dataframe.set_index('reg_id', inplace=True)
+
+        # Remove index column if exists
+        if 'index' in dataframe:
+            dataframe.drop(columns=['index'], inplace=True)
 
         if table_name == 'frost_sources' and if_exists == 'append':
-            data_frame.set_index('id', inplace=True)
-            if 'index' in data_frame:
-                data_frame.drop(columns=['index'], inplace=True)
-            for i in range(len(data_frame)):
+            for i in range(len(dataframe)):
                 try:
-                    data_frame.iloc[i:i+1].to_sql(name=table_name,
-                                                  if_exists='append', con=self.engine, chunksize=5, method='multi')
+                    dataframe.iloc[i:i+1].to_sql(name=table_name,
+                                                 if_exists='append', con=self.engine, chunksize=5, method='multi')
                 except IntegrityError:
                     continue
         else:
-            # Remove index column if exists
-            data_frame.set_index('reg_id', inplace=True)
-            if 'index' in data_frame:
-                data_frame.drop(columns=['index'], inplace=True)
-
-            data_frame.to_sql(table_name, con=self.engine,
-                              if_exists=if_exists, chunksize=5, method='multi')
+            dataframe.to_sql(table_name, con=self.engine,
+                             if_exists=if_exists, chunksize=5, method='multi')
 
     def delete_rows_with_reg_id(self, reg_ids: List[str], table_class: Type) -> None:
 
