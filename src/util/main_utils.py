@@ -1,21 +1,41 @@
+# Python libraries
 import getopt
+import configparser
+import ast
 import logging
 import sys
 import time
 from typing import Dict
 
+# pip libraries
 import pandas as pd
 from db_manager import DbManager
 from decouple import config
 from sqlalchemy.engine import create_engine
 from sqlalchemy.engine.base import Engine
 
+# Regobs
+from apis.regobs.regobs import Regobs
+from apis.regobs.regobs_initializer import RegobsData, RegobsInitializer
+
+# Xgeo
+from apis.xgeo.xgeo_initializer import XgeoData, XgeoInitializer
+from apis.xgeo.xgeo import Xgeo
+
+# Frost
+from apis.frost.frost import Frost
+from apis.frost.frost_initializer import FrostInitializer, FrostObservation
+
+# Skredvarsel
+from apis.skredvarsel.skredvarsel import Skredvarsel
+from apis.skredvarsel.skredvarsel_initializer import SkredvarselData, SkredvarselInitializer
+
 
 def create_db_connection() -> Engine:
-    server = 'avalanche-server.database.windows.net,1433'
-    database = 'avalanche-db'
-    username = config('DBUSERNAME')
-    password = config('PASSWORD')
+    server = config('DATABASE_SERVER')
+    database = config('DATABASE_NAME')
+    username = config('DATABASE_USERNAME')
+    password = config('DATABASE_PASSWORD')
     driver = 'ODBC Driver 17 for SQL Server'
 
     connection_string = (
@@ -82,3 +102,22 @@ def parse_command_line_arguments() -> bool:
         logging.critical(err)
 
     return force_update
+
+
+def load_configuration():
+    configuration = configparser.ConfigParser()
+    configuration.read('configuration.ini')
+    fetch_regobs = configuration.getboolean('MAIN', 'fetch_regobs')
+    api_fetch_list = ast.literal_eval(
+        configuration.get('MAIN', 'api_fetch_list'))
+    api_delete_list = ast.literal_eval(
+        configuration.get('MAIN', 'api_delete_list'))
+    api_initialize_list = ast.literal_eval(
+        configuration.get('MAIN', 'api_initialize_list'))
+
+    # Convert string values to corresponding Python classes
+    api_fetch_list = [eval(entry + '()') for entry in api_fetch_list]
+    api_delete_list = [eval(entry) for entry in api_delete_list]
+    api_initialize_list = [eval(entry) for entry in api_initialize_list]
+
+    return fetch_regobs, api_fetch_list, api_delete_list, api_initialize_list

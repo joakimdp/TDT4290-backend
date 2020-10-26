@@ -1,9 +1,13 @@
 
 import logging
+import os
 
 
 def setup_logging() -> object:
-    logging.basicConfig(filename='logs/output.log',
+    log_filename = 'logs/output.log'
+    os.makedirs(os.path.dirname(log_filename), exist_ok=True)
+
+    logging.basicConfig(filename=log_filename,
                         filemode='a',
                         format='%(asctime)s,%(msecs)d - %(levelname)s - %(message)s',
                         datefmt='%d.%m.%Y %H:%M:%S',
