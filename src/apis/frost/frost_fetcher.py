@@ -226,10 +226,9 @@ class FrostFetcher(fetcher.Fetcher):
                     result = (await response.json(content_type=None))
                     return result.get('data')
                 except Exception as e:
-                    logging.critical(f'Exception raised for url {url}')
+                    logging.exception(f'Exception raised for url {url}')
                     logging.critical(f'Response was:\n{await response.text()}')
                     if i == 4:
-                        logging.critical(e)
                         raise e
 
     async def fetch_observations(
@@ -260,10 +259,9 @@ class FrostFetcher(fetcher.Fetcher):
                         distance
                     )
                 except Exception as e:
-                    logging.critical(f'Exception raised for url {url}')
+                    logging.exception(f'Exception raised for url {url}')
                     logging.critical(f'Response was:\n{await response.text()}')
                     if i == 4:
-                        logging.critical(e)
                         raise e
 
     def __create_source_row(self, src: Dict[str, Any]) -> pd.DataFrame:

@@ -100,9 +100,9 @@ class XgeoFetcher(fetcher.Fetcher):
                 async with s.get(url) as response:
                     return await response.json()
             except Exception as e:
-                logging.critical(f'Exception raised for url {url}')
+                logging.exception(
+                    f'Exception raised for incident: {self.incident_count} with url: {url}')
                 if i == 4:
-                    logging.critical(e)
                     raise e
 
     @staticmethod
