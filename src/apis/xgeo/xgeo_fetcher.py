@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Tuple
 import aiohttp
 import pandas as pd
 import apis.fetcher as fetcher
-from util.async_wrappers import gather_with_concurrency
+from util.async_wrappers import gather_with_semaphore, get_with_retries
 from util.avalanche_incident import AvalancheIncident
 
 
@@ -33,7 +33,7 @@ class XgeoFetcher(fetcher.Fetcher):
         """
 
         loop = asyncio.get_event_loop()
-        df_dicts = loop.run_until_complete(gather_with_concurrency(40, *(
+        df_dicts = loop.run_until_complete(gather_with_semaphore(40, *(
             self.fetch_for_incident(incident)
             for incident in incidents
         )))
@@ -94,16 +94,7 @@ class XgeoFetcher(fetcher.Fetcher):
     async def fetch_url(self, s: aiohttp.ClientSession, url: str) -> (
         Dict[str, Any]
     ):
-        # TODO: Clean up this retry hack
-        for i in range(5):
-            try:
-                async with s.get(url) as response:
-                    return await response.json()
-            except Exception as e:
-                logging.exception(
-                    f'Exception raised for incident: {self.incident_count} with url: {url}')
-                if i == 4:
-                    raise e
+        return await get_with_retries(s, url, 5)
 
     @staticmethod
     def create_url(timestamp, utm_x, utm_y, data_code, days_earlier):

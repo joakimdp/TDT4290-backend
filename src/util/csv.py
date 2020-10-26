@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 
 
@@ -12,6 +13,7 @@ def to_csv(df, path):
     df2.index = df2.index + 1
     df2.sort_index(inplace=True)
     # Then save it to a csv
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     df2.to_csv(path, index=None)
 
 
@@ -20,8 +22,11 @@ def read_csv(path):
     Read csv file and parse datatypes
     """
     # Read types first line of csv
-    dtypes = {key: value for (key, value) in pd.read_csv(path,
-                                                         nrows=1).iloc[0].to_dict().items() if 'date' not in value}
+    dtypes = {
+        key: value for (key, value)
+        in pd.read_csv(path, nrows=1).iloc[0].to_dict().items()
+        if 'date' not in value
+    }
 
     parse_dates = [key for (key, value) in pd.read_csv(path,
                                                        nrows=1).iloc[0].to_dict().items() if 'date' in value]

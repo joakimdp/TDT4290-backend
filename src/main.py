@@ -8,7 +8,7 @@ from sqlalchemy import exc
 from db_manager import DbManager
 
 # Utilities
-from util.avalanche_incident import create_avalanche_incident_list
+from util.avalanche_incident import AvalancheIncident
 from util.dataframe_difference import dataframe_difference
 from util.main_utils import *
 from util.csv import to_csv, read_csv
@@ -105,8 +105,9 @@ def main():
                 'Number of new records to add: {}'.format(len(new_rows)))
 
             try:
-                avalanche_incident_list = create_avalanche_incident_list(
-                    new_rows)
+                avalanche_incident_list = AvalancheIncident.from_dataframe(
+                    new_rows
+                )
             except Exception as e:
                 logging.exception(
                     'Cannot create avalanche_incident_list from regobs data')
@@ -129,8 +130,9 @@ def main():
         if_table_exists_in_database = 'replace'
 
         try:
-            avalanche_incident_list = create_avalanche_incident_list(
-                api_data)
+            avalanche_incident_list = AvalancheIncident.from_dataframe(
+                api_data
+            )
         except Exception as e:
             logging.exception(
                 'Cannot create avalanche_incident_list from regobs data')
