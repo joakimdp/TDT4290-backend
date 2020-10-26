@@ -1,3 +1,5 @@
+# [prosjektnavn]
+
 ## Virtuelt miljø
 Prosjektet er lagt opp til at man skal kunne bruke et virtuelt miljø via
 Pythons `venv`-modul.
@@ -50,6 +52,54 @@ Dette oppdaterer filen `requirements.txt` til å inneholde alle
 biblioteker/pakker som er installert i miljøet for en tilstand som er
 bekreftet å virke, slik at man alltid har en baseline å sammenlikne med og å
 sette ut i produksjon.
+
+For å oppdatere pakkene til nyeste versjon kjører man
+```
+pip install -Ur requirements-top-level.txt
+```
+Og for å installere pakkene som sist ble bekreftet å virke kjører man
+```
+pip install -r requirements.txt
+```
+
+
+## Operasjon
+
+### Oppsett
+For at programmet skal utføre jobben sin trenger man en fil med miljøvariabler,
+`.env`, for autentisering til database og Frost. Variablene er
+ - `DATABASE_SERVER`: URI-en til databasen
+ - `DATABASE_NAME`: Navnet til databasen på serveren
+ - `DATABASE_USERNAME`: Brukernavnet for kontoen programmet bruker til
+   å sette inn data
+ - `DATABASE_PASSWORD`: Passordet for overnevnte konto
+ - `FROST_CID`: Klient-ID for å hente data fra Frost
+
+Videre er det nødvendig at databasen er satt opp slik det er spesifisert i
+miljøvariablene. I tillegg må avhengighetene i `requirements-top-level.txt`
+være installert. Blant disse er en backend-driver til SQLAlchemy for
+databasesystemet som brukes. Koden er lagt opp for Microsoft SQL Server.
+Backend-driveren trenger eventuelt en egen backend-driver igjen. For SQL
+Server med pyodbc trenger man en ODBC-driver. Her er det anbefalt å bruke
+[Micorsofts offisielle ODBC-driver](https://docs.microsoft.com/en-us/sql/connect/odbc/microsoft-odbc-driver-for-sql-server).
+
+### Første kjøring/bygge opp fra grunnen
+På dette er programmet klart for å kjøres. Dette gjøres ved å kjøre filen
+`src/main.py` med kommandolinjeflagget `-f/--force-update`, altså blir
+kommandoen
+```
+python src/main.py -f
+```
+
+Kjørt på en tom database vil dette lage alle nødvendige tabeller. På en
+database som allerede har data i seg vil dette tømme alle tabellene
+og fylle dem opp med all data fra grunnen av.
+
+### Inkrementell oppdatering
+Uten parametre vil programmet forsøke å kun legge inn data som er endret fra
+forrige kjøring. Så lenge programmet kjøres jevnlig vil dette drastisk kutte
+ned kjøretiden (fra ~4 timer til ~4 minutter), slik at programmet kan kjøres
+hyppig for å oppdatere databasen.
 
 
 ## Hvordan kjøre tester

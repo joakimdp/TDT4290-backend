@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import logging
 from decouple import config
 from db_manager import DbManager
