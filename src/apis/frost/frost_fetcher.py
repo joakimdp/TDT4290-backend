@@ -253,7 +253,7 @@ class FrostFetcher(fetcher.Fetcher):
                     if obs is None:
                         return None
 
-                    return self.__create_compound_obs_df(
+                    return self.__create_obs_df(
                         obs,
                         source,
                         incident.id,
@@ -348,7 +348,7 @@ class FrostFetcher(fetcher.Fetcher):
 
         return obs_row
 
-    def __create_compound_obs_df(
+    def __create_obs_df(
         self,
         obs_response: Dict[str, Any],
         src: str,
