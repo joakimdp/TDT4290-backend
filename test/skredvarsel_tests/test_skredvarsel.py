@@ -1,11 +1,11 @@
-import unittest
 from datetime import date
 
 from apis.skredvarsel.skredvarsel import Skredvarsel
 from util.avalanche_incident import AvalancheIncident
+from util.testing import AvalancheTestCase
 
 
-class TestSkredvarsel(unittest.TestCase):
+class TestSkredvarsel(AvalancheTestCase):
 
     def test_skredvarsel(self):
         avalanche_incident_list = []

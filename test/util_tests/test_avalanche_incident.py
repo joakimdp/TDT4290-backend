@@ -1,10 +1,10 @@
-import unittest
 from datetime import date
 
 from util.avalanche_incident import AvalancheIncident
+from util.testing import AvalancheTestCase
 
 
-class TestAvalancheIncident(unittest.TestCase):
+class TestAvalancheIncident(AvalancheTestCase):
     def test_representation(self):
         avalanche_incident_list = []
         avalanche_incident_list.append(AvalancheIncident(

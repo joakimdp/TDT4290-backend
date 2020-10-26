@@ -1,12 +1,12 @@
-import unittest
 import asyncio
 from datetime import date
 import aiohttp
 from apis.xgeo.xgeo_fetcher import XgeoFetcher
 from util.avalanche_incident import AvalancheIncident
+from util.testing import AvalancheTestCase
 
 
-class TestXgeoFetcher(unittest.TestCase):
+class TestXgeoFetcher(AvalancheTestCase):
     def test_create_time_string(self):
         timestamp = date.fromisoformat('2019-12-03')
         time_string = XgeoFetcher.create_time_string(timestamp)

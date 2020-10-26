@@ -1,13 +1,13 @@
 import json
-import unittest
 from datetime import date
 
 from apis.skredvarsel.skredvarsel_fetcher import SkredvarselFetcher
 from apis.skredvarsel.skredvarsel_processor import SkredvarselProcessor
 from util.avalanche_incident import AvalancheIncident
+from util.testing import AvalancheTestCase
 
 
-class TestSkredvarselProcessor(unittest.TestCase):
+class TestSkredvarselProcessor(AvalancheTestCase):
     def test_process(self):
 
         example_skredvarsel_data = [

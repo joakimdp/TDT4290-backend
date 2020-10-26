@@ -1,21 +1,11 @@
-import unittest
-
 import numpy as np
 import pandas as pd
 import pandas.testing as pd_testing
 from apis.regobs.regobs_processor import RegobsProcessor
+from util.testing import AvalancheTestCase
 
 
-class TestRegobsProcessor(unittest.TestCase):
-    def assertDataFrameEqual(self, a, b, msg):
-        try:
-            pd_testing.assert_frame_equal(a, b)
-        except AssertionError as e:
-            raise self.failureException(msg) from e
-
-    def setUp(self):
-        self.addTypeEqualityFunc(pd.DataFrame, self.assertDataFrameEqual)
-
+class TestRegobsProcessor(AvalancheTestCase):
     def test_process(self):
         example_df = pd.DataFrame(
             [["2134", 340000, 5710000, None, "/Date(1359817740000)/", "/Date(1355817740000)/", None, "/Date(1353817740000)/", 340000, 5710000],

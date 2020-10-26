@@ -1,9 +1,9 @@
-import unittest
-from apis.xgeo.xgeo_processor import XgeoProcessor
 import pandas as pd
+from apis.xgeo.xgeo_processor import XgeoProcessor
+from util.testing import AvalancheTestCase
 
 
-class TestXgeoProcessor(unittest.TestCase):
+class TestXgeoProcessor(AvalancheTestCase):
     def test_convert_dataframe_to_correct_format(self):
         example_indices = ["2019-02-10", "2019-02-11", "2019-02-12", "2019-02-13", "2019-02-14",
                            "2019-02-15", "2019-02-16", "2019-02-17", "2019-02-18", "2019-02-19", "2019-02-20"]
