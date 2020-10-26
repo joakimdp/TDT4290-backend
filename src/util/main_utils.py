@@ -99,7 +99,7 @@ def parse_command_line_arguments() -> bool:
 
     except getopt.error as err:
         # output error, and return with an error code
-        logging.critical(err)
+        logging.exception(err)
 
     return force_update
 
