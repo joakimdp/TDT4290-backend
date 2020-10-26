@@ -1,10 +1,10 @@
-import unittest
 from datetime import date
 from apis.xgeo.xgeo import Xgeo
 from util.avalanche_incident import AvalancheIncident
+from util.testing import AvalancheTestCase
 
 
-class TestXgeoApi(unittest.TestCase):
+class TestXgeoApi(AvalancheTestCase):
     def test_get_data(self):
         avalanche_incident_list = []
         avalanche_incident_list.append(AvalancheIncident(

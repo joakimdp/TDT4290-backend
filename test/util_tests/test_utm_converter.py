@@ -1,9 +1,8 @@
-import unittest
-
 import util.utm_converter as utm_converter
+from util.testing import AvalancheTestCase
 
 
-class TestUtmConverter(unittest.TestCase):
+class TestUtmConverter(AvalancheTestCase):
 
     def test_converter(self):
         east = 340000

@@ -1,13 +1,13 @@
 import json
-import unittest
 from datetime import date
 
 import requests
 from apis.skredvarsel.skredvarsel_fetcher import SkredvarselFetcher
 from util.avalanche_incident import AvalancheIncident
+from util.testing import AvalancheTestCase
 
 
-class TestSkredvarselFetcher(unittest.TestCase):
+class TestSkredvarselFetcher(AvalancheTestCase):
 
     def test_create_url(self):
         date = "2020-01-05"
