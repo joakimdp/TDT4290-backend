@@ -108,6 +108,7 @@ def load_configuration():
     configuration = configparser.ConfigParser()
     configuration.read('configuration.ini')
     fetch_regobs = configuration.getboolean('MAIN', 'fetch_regobs')
+    load_excel_data = configuration.getboolean('MAIN', 'load_excel_data')
     api_fetch_list = ast.literal_eval(
         configuration.get('MAIN', 'api_fetch_list'))
     api_delete_list = ast.literal_eval(
@@ -120,4 +121,4 @@ def load_configuration():
     api_delete_list = [eval(entry) for entry in api_delete_list]
     api_initialize_list = [eval(entry) for entry in api_initialize_list]
 
-    return fetch_regobs, api_fetch_list, api_delete_list, api_initialize_list
+    return fetch_regobs, load_excel_data, api_fetch_list, api_delete_list, api_initialize_list

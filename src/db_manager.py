@@ -24,6 +24,8 @@ class DbManager():
         # Set correct index for dataframe
         if table_name == 'frost_sources':
             dataframe.set_index('id')
+        elif table_name == 'excel_data':
+            pass
         else:
             dataframe.set_index('reg_id', inplace=True)
 
@@ -34,8 +36,8 @@ class DbManager():
         if table_name == 'frost_sources' and if_exists == 'append':
             for i in range(len(dataframe)):
                 try:
-                    dataframe.iloc[i:i+1].to_sql(name=table_name,
-                                                 if_exists='append', con=self.engine, chunksize=5, method='multi')
+                    dataframe.iloc[i:i + 1].to_sql(name=table_name,
+                                                   if_exists='append', con=self.engine, chunksize=5, method='multi')
                 except IntegrityError:
                     continue
         else:

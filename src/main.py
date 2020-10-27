@@ -13,11 +13,12 @@ from util.dataframe_difference import dataframe_difference
 from util.main_utils import *
 from util.csv import to_csv, read_csv
 from util.logging import setup_logging
+from util.excel_data import ExcelData, process_excel_data
 
 
 def main():
     # See configuration.ini for details
-    fetch_regobs, api_fetch_list, api_delete_list, api_initialize_list = load_configuration()
+    fetch_regobs, load_excel_data, api_fetch_list, api_delete_list, api_initialize_list = load_configuration()
 
     # Handle command line arguments
     force_update = parse_command_line_arguments()
@@ -33,6 +34,11 @@ def main():
         raise e
 
     db_manager = DbManager(engine)
+
+    if load_excel_data:
+        excel_data = process_excel_data()
+        ExcelData.metadata.create_all(engine)
+        db_manager.insert_dataframe('excel_data', excel_data, if_exists='replace')
 
     logging.info('Fetching RegObs data..')
     # Fetch regobs data from api
@@ -68,9 +74,9 @@ def main():
             raise e
 
         # Compare current database data with new api data
-        # Rows to delete from all tables
         logging.info(
             'Comparing dataframes to determine which rows are added or removed..')
+        # Rows to delete from all tables
         deleted_rows = dataframe_difference(
             db_data, api_data, ['reg_id', 'dt_change_time'])
 
@@ -156,8 +162,13 @@ def main():
         logging.info('The application terminated successfully')
         return
 
-    api_table_dict = get_table_dict_for_apis_in_list(
-        api_fetch_list, avalanche_incident_list)
+    try:
+        api_table_dict = get_table_dict_for_apis_in_list(
+            api_fetch_list, avalanche_incident_list)
+    except Exception as e:
+        logging.exception(
+            'Error fetching API data')
+        raise e
 
     # Set new database connection
     db_manager.engine = create_db_connection()
