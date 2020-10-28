@@ -1,3 +1,7 @@
+# TODO: Remove when Python 3.10 is deployed
+from __future__ import annotations
+from typing import List, Tuple
+import datetime as dt
 import pandas as pd
 
 
@@ -8,29 +12,33 @@ class AvalancheIncident():
     information about an avalanche.
     """
 
-    def __init__(self, id, time, coords_utm, coords_latlng):
+    def __init__(
+        self,
+        id: int,
+        time: dt.datetime,
+        coords_utm: Tuple[int, int],
+        coords_latlng: Tuple[float, float]
+    ):
         self.id = id
         self.time = time
         self.coords_utm = coords_utm
         self.coords_latlng = coords_latlng
 
     def __repr__(self):
-        return "AvalancheIncident with id={}, time={}, coords_utm={}, coords_latlng={}".format(
-            str(self.id),
-            str(self.time),
-            str(self.coords_utm),
-            str(self.coords_latlng)
+        return (
+            f'AvalancheIncident with id={self.id}, time={self.time}, '
+            f'coords_utm={self.coords_utm}, coords_latlng={self.coords_latlng}'
         )
 
+    @classmethod
+    def from_dataframe(cls, df: pd.DataFrame) -> List[AvalancheIncident]:
+        aval_objects = []
 
-def create_avalanche_incident_list(df: pd.DataFrame):
-    aval_objects = []
+        for index, row in df.iterrows():
+            aval_objects.append(cls(
+                row['reg_id'],
+                row['time'],
+                (row['utm_east_reg'], row['utm_north_reg']),
+                (row['lat'], row['lng'])))
 
-    for index, row in df.iterrows():
-        aval_objects.append(AvalancheIncident(
-            row['reg_id'],
-            row['time'],
-            (row['utm_east_reg'], row['utm_north_reg']),
-            (row['lat'], row['lng'])))
-
-    return aval_objects
+        return aval_objects

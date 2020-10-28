@@ -7,7 +7,7 @@ import pandas as pd
 from decouple import config
 import apis.fetcher as fetcher
 from util.avalanche_incident import AvalancheIncident
-from util.async_wrappers import gather_with_concurrency
+from util.async_wrappers import gather_with_semaphore, get_with_retries
 
 
 class FrostFetcher(fetcher.Fetcher):
@@ -84,7 +84,7 @@ class FrostFetcher(fetcher.Fetcher):
         'sum(precipitation_amount P1D)',
         'over_time(precipitation_type P1D)',
         'mean(wind_speed P1D)',
-        # TODO: calculate mean for day
+        # This element can be used to calculate mean for day
         # 'mean(wind_from_direction PT1H)',
         'best_estimate_mean(air_temperature P1D)',
         'mean(cloud_area_fraction P1D)'
@@ -100,7 +100,7 @@ class FrostFetcher(fetcher.Fetcher):
 
         loop = asyncio.get_event_loop()
         # Fetch for all incidents
-        dfs = loop.run_until_complete(gather_with_concurrency(10, *(
+        dfs = loop.run_until_complete(gather_with_semaphore(10, *(
             self.fetch_for_incident(incident) for incident in incidents
         )))
 
@@ -175,7 +175,7 @@ class FrostFetcher(fetcher.Fetcher):
                 )
 
             # Fetch for all sources
-            observations_dfs = await gather_with_concurrency(5, *(
+            observations_dfs = await gather_with_semaphore(5, *(
                 self.fetch_observations(
                     s,
                     incident,
@@ -219,17 +219,7 @@ class FrostFetcher(fetcher.Fetcher):
             end
         )
 
-        # TODO: Clean up this retry hack
-        for i in range(5):
-            async with s.get(url) as response:
-                try:
-                    result = (await response.json(content_type=None))
-                    return result.get('data')
-                except Exception as e:
-                    logging.exception(f'Exception raised for url {url}')
-                    logging.critical(f'Response was:\n{await response.text()}')
-                    if i == 4:
-                        raise e
+        return (await get_with_retries(s, url, 5)).get('data')
 
     async def fetch_observations(
         self,
@@ -243,26 +233,17 @@ class FrostFetcher(fetcher.Fetcher):
     ) -> pd.DataFrame:
         url = type(self).__observations_uri.format(source, start, end, element)
 
-        # TODO: Clean up this retry hack
-        for i in range(5):
-            async with s.get(url) as response:
-                try:
-                    obs = (await response.json(content_type=None)).get('data')
+        obs = (await get_with_retries(s, url, 5)).get('data')
 
-                    if obs is None:
-                        return None
+        if obs is None:
+            return None
 
-                    return self.__create_obs_df(
-                        obs,
-                        source,
-                        incident.id,
-                        distance
-                    )
-                except Exception as e:
-                    logging.exception(f'Exception raised for url {url}')
-                    logging.critical(f'Response was:\n{await response.text()}')
-                    if i == 4:
-                        raise e
+        return self.__create_obs_df(
+            obs,
+            source,
+            incident.id,
+            distance
+        )
 
     def __create_source_row(self, src: Dict[str, Any]) -> pd.DataFrame:
         source_row = pd.DataFrame([[
