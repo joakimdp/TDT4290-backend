@@ -22,6 +22,7 @@ async def get_with_retries(s: aiohttp.ClientSession, url: str, n: int) -> (
             async with s.get(url) as response:
                 return await response.json(content_type=None)
         except Exception as e:
-            logging.exception(f'Exception raised for url {url}')
+            logging.critical(f'Fetching failed for url {url}, retrying..')
             if i == 1:
+                logging.exception(f'Exception raised for url {url}')
                 raise e

@@ -36,6 +36,7 @@ def main():
     db_manager = DbManager(engine)
 
     if load_excel_data:
+        logging.info('Adding excel data to database table excel_data..')
         excel_data = process_excel_data()
         ExcelData.metadata.create_all(engine)
         db_manager.insert_dataframe('excel_data', excel_data, if_exists='replace')
