@@ -40,7 +40,7 @@ class ExcelData(Base):
 
 
 def process_excel_data():
-    filename = './csv_files/excel_data.csv'
+    filename = './excel_data/excel_data.csv'
 
     # Get column names
     with open(filename, 'rt', encoding='utf-8-sig') as f:
