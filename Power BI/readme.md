@@ -4,7 +4,7 @@
 ## Hvordan legge til en datakilde
 1. Åpne Power BI Desktop
 2. I verktøylinjen; velg “Hent data”. Velg så riktig datakilde etterfulgt av “Koble til”. Azure SQL-database er hva som er blitt brukt til nå.
-<img src="Images/1.2.png"/>
+<img src="Images/1.2.png" width="400"/>
 3.  Fyll inn servernavn og databasenavn i de to tilhørende feltene og huk av de boksene som vist på skjermbildet nedenfor. Trykk deretter på “OK”.
 <img src="Images/1.3.png"/>
 4. Man kan nå velge å laste inn dataen eller transformere dataen. Det anbefales å laste inn dataen for å se at den lastes inn riktig. Å transformere dataen kan enkelt gjøres også etter at dataen er lastet inn.
@@ -38,8 +38,8 @@
 
 ## Hvordan man får en Power BI-fil ut på nett (Del 2):
 9. Nå er dashbordet klart for å bli publisert på nett. For å gjøre dette må man gå tilbake til der man var i **steg 5**. Her trykker man “Fil” → “Publiser på nett”. Kopier HTML-kodesnutten.
-<img src="Images/5.9.1png"/>
-<img src="Images/5.9.2png"/>
+<img src="Images/5.9.1.png"/>
+<img src="Images/5.9.2.png"/>
 … og lime inn som src i iframen du vil at dashbordet skal ligge i, f.eks i Wix:
-<img src="Images/5.9.3png"/>
+<img src="Images/5.9.3.png"/>
 10. Publiser nettsiden, og dashbordet er klart.
