@@ -4,7 +4,7 @@
 ## Hvordan legge til en datakilde
 1. Åpne Power BI Desktop
 2. I verktøylinjen; velg “Hent data”. Velg så riktig datakilde etterfulgt av “Koble til”. Azure SQL-database er hva som er blitt brukt til nå.
-<img src="Images/1.2.png" width="400"/>
+<img src="Images/1.2.png" width="700"/>
 3.  Fyll inn servernavn og databasenavn i de to tilhørende feltene og huk av de boksene som vist på skjermbildet nedenfor. Trykk deretter på “OK”.
 <img src="Images/1.3.png"/>
 4. Man kan nå velge å laste inn dataen eller transformere dataen. Det anbefales å laste inn dataen for å se at den lastes inn riktig. Å transformere dataen kan enkelt gjøres også etter at dataen er lastet inn.
