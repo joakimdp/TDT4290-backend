@@ -279,11 +279,6 @@ class TestFrostFetcher(AvalancheTestCase):
                 None
             ]
         ], columns=FrostFetcher.observations_headers)
-        
-        print('Observations actual length:', len(actual))
-        print('Observations expected length:', len(expected))
-        print(actual)
-        print(expected)
 
         self.assertEqual(actual, expected)
 
