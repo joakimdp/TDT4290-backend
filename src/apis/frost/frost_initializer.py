@@ -1,6 +1,7 @@
 from typing import Dict
 from sqlalchemy.schema import ForeignKey, Column
 from sqlalchemy.types import Integer, DateTime, Float, String, Text
+from sqlalchemy.dialects.mssql import DATETIME2
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.engine.base import Engine
@@ -22,7 +23,7 @@ class FrostSource(Base):
     latitude = Column(Float())
     longitude = Column(Float())
     masl = Column(String(10))
-    valid_from = Column(DateTime())
+    valid_from = Column(DATETIME2())
     valid_to = Column(DateTime())
     county = Column(String(100))
     county_id = Column(String(10))
