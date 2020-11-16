@@ -23,8 +23,9 @@ class FrostSource(Base):
     latitude = Column(Float())
     longitude = Column(Float())
     masl = Column(String(10))
-    valid_from = Column(DATETIME2())
-    valid_to = Column(DateTime())
+    # Commented out due to the ODBC driver not respecting the DATETIME2 type
+    # valid_from = Column(DATETIME2())
+    # valid_to = Column(DateTime())
     county = Column(String(100))
     county_id = Column(String(10))
     municipality = Column(String(100))
