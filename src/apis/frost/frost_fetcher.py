@@ -45,8 +45,9 @@ class FrostFetcher(fetcher.Fetcher):
         'latitude',
         'longitude',
         'masl',
-        'valid_from',
-        'valid_to',
+        # See comment in frost_initializer.py
+        # 'valid_from',
+        # 'valid_to',
         'county',
         'county_id',
         'municipality',
@@ -259,12 +260,13 @@ class FrostFetcher(fetcher.Fetcher):
             src['geometry']['coordinates'][0] if (
                 src.get('geometry') is not None) else None,
             src.get('masl'),
-            dt.datetime.fromisoformat(
-                src.get('validFrom')[:-1]
-            ),
-            dt.datetime.fromisoformat(
-                src.get('validTo')[:-1]
-            ) if src.get('validTo') is not None else None,
+            # See comment in frost_initializer.py
+            # dt.datetime.fromisoformat(
+            #     src.get('validFrom')[:-1]
+            # ),
+            # dt.datetime.fromisoformat(
+            #     src.get('validTo')[:-1]
+            # ) if src.get('validTo') is not None else None,
             src.get('county'),
             src.get('countyId'),
             src.get('municipality'),
